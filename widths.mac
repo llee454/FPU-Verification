@@ -1,0 +1,98 @@
+/*
+  Calculates a weak property for the maximum
+  upper bound on the size of the registers used
+  in Hauser's implementation of floating point
+  division and square roots.
+
+  given a binary number b, let [[b]] denote its
+  maximum upper bound width.
+
+  [[b0 + b1]] = 1 + max ([[b0]], [[b1]])
+  [[2^n b]]   = [[b]] + n
+  [[b^2]]     = 2 [[b]] - 1
+  [[2^n b + k]] where [[k]] <= n = [[b]] + n
+  [[b = k]] where k is a value = [[b]] = ceiling (log2 (k)) + 1
+
+  using these equations we can derive a set of
+  recurrence relations that describe the maximum
+  upper bound for Hauser's register widths.
+
+  note: sig represents the approximate and final result.
+  bit represents the bitmask used to select which bit to write in sig (approx).
+  c represents the value of the bit being written currently.
+  c is a single bit value.
+
+  [[a]] = s
+  [[b]] = s
+
+  sig (0) = 0
+    => [[sig (0)]] = 1
+
+  rem (0) = a/2
+    => ceiling (log2 (s)) - 1
+
+  cycle (0) = s + 2
+    => [[cycle (0)]] = log2 (s) + 2
+
+  bit (0) = 2^s
+    => log2 (2^s) + 1 = s + 1
+
+  sig (n + 1) = sig (n) + c (n) * bit (n)
+    => 1 + max ([[sig (n)]], [[bit (n)]])
+
+  rem (n + 1) = 2 * rem (n) - c (n) * (2 * sig (n) + bit (n))
+    => 1 + max ([[rem (n)]],
+                1 + max (1 + [[sig (n)]],
+                         [[bit (n)]]))
+
+  c (n) = 2 * sig (n) + bit (n) <= 2 * rem (n)
+    => 1
+
+  bit (n) = 2^(cycle (n) - 2)
+    => ceiling (cycle (n) - 2) + 1
+
+  cycle (n + 1) = cycle (n) - 1
+    => [[cycle (n)]]
+
+  summary (1) = a - 2^s
+    => s + 1
+
+  summary (n + 1) = if _ then rem (n + 1) else summary (n)
+    => max ([[rem (n + 1)]], [[summary (n)]])
+
+  Given these equations, evaluate the width function for the various variables when n = 0 .. s + 1
+
+  
+*/
+
+
+log2 (n) := log (n)/log (2);
+
+sig (n)
+  := if n = 0
+       then 1
+       else 1 + max (sig (n - 1), bit (n - 1));
+
+rem (n)
+  := if n = 0
+       then ceiling (log (s)) - 1
+       else 1 + max (rem (n - 1),
+                     1 + max (1 + sig (n - 1)),
+                              bit (n -1));
+
+c (n) := 1;
+
+bit (n)
+  := if n = 0
+       then s + 1
+       else ceiling (cycle (n) - 2) + 1;
+
+cycle (n) 
+  := if n = 0
+       then log2 (s) + 2
+       else cycle (n - 1);
+
+summary (n)
+  := if n = 1
+       then s + 1
+       else max (rem (n), summary (n - 1));
