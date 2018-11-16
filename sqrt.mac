@@ -1,0 +1,129 @@
+murali_x (n)
+  := if n = 0
+       then 0
+       else murali_x (n - 1) + murali_c (n - 1) * 2^(1 - n);
+
+murali_r (n)
+  := a - murali_x (n) ^ 2;
+
+murali_c (n) 
+  := if 2^(-n) * (2 * murali_x (n) + 2^(-n)) <= murali_r (n)
+       then 1
+       else 0;
+
+murali_summary (n)
+  := if murali_r (n) = 0
+       then 0
+       else 1;
+
+hauser_sig (n)
+  := if n = 0
+       then 0
+       else hauser_sig (n - 1) + hauser_c (n - 1) * hauser_bit (n - 1);
+
+hauser_rem (n)
+  := if n = 0
+       then a/2
+       else 2 * hauser_rem (n - 1) - hauser_c (n - 1) * (2 * hauser_sig (n - 1) + hauser_bit (n - 1));
+
+hauser_c (n)
+  := if 2 * hauser_sig (n) + hauser_bit (n) <= 2 * hauser_rem (n)
+       then 1
+       else 0;
+
+hauser_bit (n)
+  := 2^(hauser_cycle (n) - 2);
+
+hauser_cycle (n)
+  := if n = 0
+       then s + 2
+       else hauser_cycle (n - 1) - 1;
+
+/* ======== */
+
+hauser_m_sig (n)
+  := if n = 0
+       then 0
+       else hauser_m_sig (n - 1) + hauser_m_c (n - 1) * hauser_m_bit (n - 1);
+
+hauser_m_rem (n)
+  := if n = 0
+       then a/2
+       else 2 * hauser_m_rem (n - 1) - hauser_m_c (n - 1) * (2 * hauser_m_sig (n - 1) + hauser_m_bit (n - 1));
+
+hauser_m_c (n)
+  := if 2 * hauser_m_sig (n) + hauser_m_bit (n) <= 2 * hauser_m_rem (n)
+       then 1
+       else 0;
+
+hauser_m_bit (n)
+  := 2^(- n);
+
+/* ======== */
+
+
+hauser_summary (n)
+  := if n = 1
+       then a - (2^s)
+       else if hauser_c (n - 1) = 1
+              then if rem (n) = 0
+                     then 0
+                     else 1
+              else hauser_summary (n - 1);
+
+
+
+
+/*
+  Calculates the square root of binary numbers
+  having a 2 bit square root.
+
+  x is the number we're taking the square root of, y is the intermediate result approximation.
+  e represents the error. Initially fully x.
+*/
+approx (n)
+  := if n = 0
+       then 0
+       else 2 * approx (n - 1) + b (n - 1);
+
+b (n)
+  := if 4 * approx (n) + 1 <= error (n) + 2 * x [2 * n + 1] + x [2 * (n + 1)]
+       then 1
+       else 0;
+
+err (n)
+  := if n = 0
+       then 0
+       else ((4 * err (n - 1) + 2 * x [2 * n + 1] + x [2 * (n + 1)]) - approx (n - 1));
+
+bsqrt_aux (n, m, x, err, approx)
+  := block (
+       display ("============="),
+       display (m),
+       display (x),
+       display (err),
+       display (approx),
+       if n = m
+         then approx
+         else block ([bn, approxn, errn],
+           bn : if 4 * decodeR (approx) + 1 <= 4 * err + 2 * x [(2 * m) + 1] + x [(2 * m + 1) + 1] then 1 else 0,
+           approxn : encodeR (2 * decodeR (approx) + bn),
+           errn : (4 * err + 2 * x [(2 * m) + 1] + x [(2 * m + 1) + 1]) - (bn * (4 * decodeR (approx) + bn)),
+           display (4 * err + 2 * x [(2 * m) + 1] + x [(2 * m + 1) + 1]),
+           display (bn),
+           display (errn),
+           display (approxn),
+           bsqrt_aux (n, m + 1, x, errn, approxn)
+         ));
+
+bsqrt (x)
+  := bsqrt_aux (length (x)/2, 0, x, 0, []);
+
+/*
+*/
+normal_encode (a)
+  := block ([x],
+       x : encodeR (a),
+       if mod (length (x), 2) = 0
+         then x
+         else cons (0, x));
