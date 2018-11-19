@@ -1,6 +1,71 @@
-The problem is in theorem_n
-
 == Goal ==
+
+rem (n) = error (n) * 2^n/2
+
+error (n) * 2^n/2 < 4
+
+error (n) < 8/2^n
+
+Prove that !forall n : nat, error (n) < 4/2^n.
+
+== Summary ==
+
+We will show that forall n : nat, error (n) < 4/2n implies that forall n : nat, approx (n) = 1.1111.. = 2 - i.e. that forall n : nat, b (n) = 1.
+
+But this implies that approx (n)^2 > 2 > a, which implies that error (n) < 0, which is a contradiction.
+
+We prove that forall n : nat, b (n) = 1 by showing that b (n) = 0 leads to a contradiction. 
+
+== Proof that forall n : nat, b (n) = 1 ==
+
+forall n : nat, when b (n) = 0: error (n) < 1/2^n * (2 approx (n) + 1/2^n).
+
+We can substitute this equation into our error (n) - ((b (n)/2^n) * (2 * approx (n) + b (n)/2^n)) = error (n + 1) equation to maximize error (n):
+
+1/2^n * (2 * approx (n) + 1/2^n) - ((b n/2^n) * (2 * approx (n) + b (n)/2^n))
+1/2^n * (2 * approx (n) + 1/2^n)
+
+Now for this equation to satisfy the upper bound (error (n + 1) < 4/2^(n + 1) = 2/2^n):
+
+approx (n) < 1 - 1/2^(n + 1)
+
+the problem is that this constraint is not true, because 1 <= approx (n) < 2, and 1 - 1/2^(n + 1) < 1.
+
+This produces a contradiction for the b (n) = 0 case, so we know that b (n) <> 0. Hence b (n) = 1.
+
+
+This means that for each n, approx (n + 1) = 2-1/2^(n + 1), and approx (0) = 0.
+forall n : nat, n > 1 -> approx (n) = 2 - 1/2^(n)
+
+ 10.0000
+-00.0001
+  1.1111
+
+approx 0 = 0
+forall n > 0, approx n = 2 - 1/2^(n-1) = 2 - 2/2^n
+
+approx (n + 1) = approx (n) + b (n)/2^n = approx (n) + 1/2^n = 2 - 2/2^n + 1/2^n = 2-1/2^n = 2-2/2^(n + 1).
+
+So for each n we prove that approx (n) = 2 - 2/2^n.
+
+But, when n is sufficiently large approx (n) > 2 which is greater than a.
+
+We can express this as:
+
+(forall m : nat, error (m) < 4/2^m) -> forall n : nat, approx (n) >= 2-2/2^n.
+
+then we just show that there exists an n for which approx (n)^2 > 2.
+
+Since a < 2, and a - approx (n)^2 = error (n), there exists a value for which error (n) < 0.
+
+This contradicts the axiom that error (n) >= 0.
+
+==========================================================
+
+
+
+given that approx (n) = 2 - 1/2^n, we can prove that approx (n + 1) = approx (n) + b (n)/2^n = approx (n) + 1/2^n = 2 - 1/2^n + 1/2^n = 
+
 
 given error (n) < 4/2^n, prove that error (n + 1) < 2/2^n.
 
