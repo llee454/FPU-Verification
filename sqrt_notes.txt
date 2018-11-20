@@ -1,280 +1,108 @@
 == Goal ==
 
-rem (n) = error (n) * 2^n/2
+rem (n) = error (n) * 2^n/2 < 4
 
-error (n) * 2^n/2 < 4
+forall n : nat, error (n) < 8/2^n
 
-error (n) < 8/2^n
+== Definitions and Relations ==
 
-Prove that !forall n : nat, error (n) < 4/2^n.
+1 <= a < 2
 
-== Summary ==
+a = approx (n)^2 + error (n)
 
-We will show that forall n : nat, error (n) < 4/2n implies that forall n : nat, approx (n) = 1.1111.. = 2 - i.e. that forall n : nat, b (n) = 1.
+error (n + 1) = error (n) - (b (n)/2^n) * (2 * approx (n) + b (n)/2^n)
 
-But this implies that approx (n)^2 > 2 > a, which implies that error (n) < 0, which is a contradiction.
+a < (approx (n) + 2/2^n)^2
+a < approx (n)^2 + 4/2^n * (approx (n) + 1/2^n)
+a - approx (n)^2 < 4/2^n * (approx (n) + 1/2^n)
+error (n) < 4/2^n * (approx (n) + 1/2^n)
+0 <= error (n) < 4/2^n * (approx (n) + 1/2^n)
 
-We prove that forall n : nat, b (n) = 1 by showing that b (n) = 0 leads to a contradiction. 
+approx (n)^2 = a - error (n)
+approx (n)^2 < 2 - 0
+approx (n) < 2^(1/2)
+0 <= approx (n) < 2^(1/2)
 
-== Proof that forall n : nat, b (n) = 1 ==
+a < (approx (n) + 2/2^n) 
+intuitively, because adding 2/2^n flips a bit that was a 0 in approx (n). That bit was 0 precisely to ensure that approx (n)^2 was less than a.
 
-forall n : nat, when b (n) = 0: error (n) < 1/2^n * (2 approx (n) + 1/2^n).
+subst the upper bound for approx (n) into the bounds for error (n) gives:
 
-We can substitute this equation into our error (n) - ((b (n)/2^n) * (2 * approx (n) + b (n)/2^n)) = error (n + 1) equation to maximize error (n):
+0 <= error (n) < (2^(5/2) + 4/2^n)/2^n = (5.656854249492383+4/2^n)/2^n
+
+8/2^(n + 1) = 8/(2*2^n) = 4/2^n
+
+== Proof ==
+
+We can prove that the goal holds for n = 0 using my proof that error (n) < 4 for n = 0.
+
+For all n > 0, direct calculation using error (n) < (5.656854249492383+4/2^n)/2^n gives it.
+
+
+
+
+
+clearly this holds for n = 0 and n = 1 (I already have a proof that forall n, error (n) < 4.
+
+So the goal is:
+
+forall n : nat, error (n) < 8/2^n -> error (n + 1) < 4/2^n
+
+lets expand error (n + 1). Our goal is:
+
+error (n) - ((b (n)/2^n) * (2 * approx (n) + b (n)/2^n)) < 4/2^n
+
+In what follows we will attempt maximize the lhs of this equation and show that it cannot exceed the rhs.
+
+To do this we will attempt to establish upper bounds for error (n) and lower bounds for approx (n) and show that when these bounds are substituted, the lhs is less than the rhs.
+
+== Case Analysis on b (n) ==
+
+when b (n) = 0: error (n) < 1/2^n * (2 approx (n) + 1/2^n).
+
+when b (n) = 1: 1/2^n * (2 approx (n) + 1/2^n) <= error (n).
+
+=== b (n) = 0 ===
+
+when b (n) = 0: error (n) < 1/2^n * (2 * approx (n) + 1/2^n).
 
 1/2^n * (2 * approx (n) + 1/2^n) - ((b n/2^n) * (2 * approx (n) + b (n)/2^n))
 1/2^n * (2 * approx (n) + 1/2^n)
 
-Now for this equation to satisfy the upper bound (error (n + 1) < 4/2^(n + 1) = 2/2^n):
+now when we maximize the equation by substituting approx (n) = 2, we get:
 
-approx (n) < 1 - 1/2^(n + 1)
+4/2^n + 1/4^n which is not less than 4/2^n.
 
-the problem is that this constraint is not true, because 1 <= approx (n) < 2, and 1 - 1/2^(n + 1) < 1.
+So we need a stronger (lower) upper bound for approx (n).
 
-This produces a contradiction for the b (n) = 0 case, so we know that b (n) <> 0. Hence b (n) = 1.
+Substituting 2^(1/2) for approx (n) gives:
 
+(1/2^n + 2^(3/2))/2^n < 4/2^n;
+1/2^n + 2^(3/2) < 4;
+1/2^n + 2.82842712474619 < 4
 
-This means that for each n, approx (n + 1) = 2-1/2^(n + 1), and approx (0) = 0.
-forall n : nat, n > 1 -> approx (n) = 2 - 1/2^(n)
+This is maximized when n = 0, giving:
 
- 10.0000
--00.0001
-  1.1111
+3.82842712474619 < 4
 
-approx 0 = 0
-forall n > 0, approx n = 2 - 1/2^(n-1) = 2 - 2/2^n
-
-approx (n + 1) = approx (n) + b (n)/2^n = approx (n) + 1/2^n = 2 - 2/2^n + 1/2^n = 2-1/2^n = 2-2/2^(n + 1).
-
-So for each n we prove that approx (n) = 2 - 2/2^n.
-
-But, when n is sufficiently large approx (n) > 2 which is greater than a.
-
-We can express this as:
-
-(forall m : nat, error (m) < 4/2^m) -> forall n : nat, approx (n) >= 2-2/2^n.
-
-then we just show that there exists an n for which approx (n)^2 > 2.
-
-Since a < 2, and a - approx (n)^2 = error (n), there exists a value for which error (n) < 0.
-
-This contradicts the axiom that error (n) >= 0.
-
-==========================================================
-
-
-
-given that approx (n) = 2 - 1/2^n, we can prove that approx (n + 1) = approx (n) + b (n)/2^n = approx (n) + 1/2^n = 2 - 1/2^n + 1/2^n = 
-
-
-given error (n) < 4/2^n, prove that error (n + 1) < 2/2^n.
-
-now our goal can be expanded as:
-
-error (n + 1) < 2/2^n
-error (n) - ((b (n)/2^n) * (2 * approx (n) + b (n)/2^n)) < 2/2^n
-
-== Solution ==
-
-=== Direct Substitution === 
-
-Now we cound maximize the lhs by substituting the upper bound given by our inductive hypothesis:
-
-4/2^n - ((b n/2^n) * (2 * approx (n) + b (n)/2^n)) < 2/2^n
-2/2^n < ((b n/2^n) * (2 * approx (n) + b (n)/2^n))
-
-but in general this does not hold because 0 <= b (n) <= 1. Substituting b (n) = 0 gives:
-
-2/2^n < 0.
-
-=== Case Analysis on b (n) ====
-
-we need to either set an upper bound for error (n) when we do not subtract or set a lower bound for the value subtracted when we do.
-
-when b (n) = 0: error (n) < 1/2^n * (2 approx (n) + 1/2^n)
-
-when b (n) = 1: 1/2^n * (2 approx (n) + 1/2^n) <= error (n).
-
-==== b (n) = 0 ===
-
-when b (n) = 0: error (n) < 1/2^n * (2 approx (n) + 1/2^n).
-
-We can substitute this equation into our error (n + 1) equation to maximize error (n):
-
-1/2^n * (2 * approx (n) + 1/2^n) - ((b n/2^n) * (2 * approx (n) + b (n)/2^n)) < 2/2^n
-1/2^n * (2 * approx (n) + 1/2^n) < 2/2^n
-
-Now the problem is that the approx (n) < 2 constraint is not sufficient to prove our goal.
-
-1/2^n * (2 * approx (n) + 1/2^n) < 2/2^n
-1/2^n * (4 + 1/2^n) < 2/2^n
-
-but we can solve this inequality to get a constraint on approx (n):
-
-approx (n) < 1 - 1/2^(n + 1)
-
-the problem is that this constraint is not true, because 1 <= approx (n) < 2, and 1 - 1/2^(n + 1) < 1.
-
-This produces a contradiction for the b (n) = 0 case, so we know that b (n) <> 0. Hence b (n) = 1.
-
-
-This argument holds for all n. So we know that approx (n) must be of the form 1.11111.
-
-The problem is that approx (n) = 1.11111.. < 2 this means that lim n -> inf, approx (n)^2 = 4. which is greater than the maximum value for 1<=a<2.  so there must exist an n for which approx (n)^2 is greater than a.
-
-This proves that our goal is false.
-
-proof sketch:
-
-Our forall n, rem (n) < 4 goal implies that forall n, error (n) < 4/2^n. 
-
-forall n, error (n) < 4/2^n implies that approx (n) = 1.1111.. = 2-1/2^n. or something like this.
-
-but then for all a there exists an n where approx(n)^2 is greater than a.
-
-this is a contradiction. Hence !forall n, rem (n) < 4.
-
-
-
-
-
-
-
-If we can produce a contradiction for the b (n) = 1 case, we know that the goal is false.
+which holds.
 
 ==== b (n) = 1 ====
 
-when b (n) = 1: 1/2^n * (2 approx (n) + 1/2^n) <= error (n).
+Our goal is to prove that:
 
-to prove that the goal is false, we must try to show that
+error (n) - (1/2^n) * (2 * approx (n) + 1/2^n)) < 4/2^n
 
-error (n) - ((1/2^n) * (2 * approx (n) + 1/2^n)) >= 2/2^n
+Again we maximize error (n), minimize the second term in the lhs, and show that the result is less than 4/2^n.
 
-when the lhs is minimized.
+lets use error (n) = 4/2^n * (approx (n) + 1/2^n) and approx (n) = 0.
 
-Our minimum bound for error (n) is 1/2^n * (2 approx (n) + 1/2^n) from the b (n) = 1 constraint.
+4/2^n * (approx (n) + 1/2^n) - (1/2^n) * (2 * approx (n) + 1/2^n)) < 4/2^n
+(3/2^n)/2^n < 4/2^n;
+3/2^n < 4
 
-This substitution results in 0 >= 2/2^n.
+which holds.
 
-So we need a stronger lower bound for error (n).
+== Conclusion ==
 
-we know that a - approx (n)^2 = error (n).
-
-We know that 1 <= a < 2. we need to minimize a and maximize approx. 
-
-This argument appears to be a dead end...
-
-But we just showed that error (n) = 4/2^n is inconsistent with b (n) = 0. So our inductive hypothesis must change the upper bound for error (n) based on whether or not b (n) = 0.
-
-
-
-
-
-Now using our inductive hypothesis we can maximize error (n) using, error (n) < 4/2^n:
-
-1/2^n * (2 approx (n) + 1/2^n) <= 4/2^n
-
-when approx (n) = 1, this equation holds.
-
-when approx (n) = 2, this equation fails.
-
-So our existing constraints on approx (n) are not sufficient to decide the matter.
-
-we know that approx (n) >= 1. When we insert this into the error (n + 1) equation to see if we exceed our 2/2^n goal:
-
-4/2^n - 1/2^n * (2 + 1/2^n) = 2/2^n - 1/4^n < 2/2^n
-
-To prove that the goal is false, we need a minimum value for approx (n) greater than 1.
-
-We know that a - error (n) = approx (n)^2.
-
-1 <= a < 2
-1/2^n * (2 approx (n) + 1/2^n) <= error (n) < 4/2^n
-
-We need a minimum value of approx (n).
-
-To do this we minimize a and maximize error (n) this gives the smallest possible value for approx (n)
-
-1 - 4/2^n <= approx (n)^2
-
-If we substitute this minimum value for approx (n) into the error (n + 1) equation, do we now exceed our goal?
-
-1/2^n * (2 approx (n) + 1/2^n) - 
-
-
-
-
-
-
-
-
-
-
-
-I have error n < 4/2^n, but I need to prove that
-
-error n - ((b n / 2^n) * (2 * approx n + (b n / 2^n))) < 4/2^(S n)
-(4/2^n) - ((b n / 2^n) * (2 * approx n + (b n / 2^n))) < 4/2^(S n)
-
-The problem is that if b n = 0, then we have
-
-4/2^n < 4/2^(S n)
-
-which is false.
-
-So we must show that if b n = 1 then the expression ((b n / 2^n) * (2 * approx n + (b n / 2^n))) is greater than or equal to:
-
-4/2^n - 4/2^(S n) = 2/2^n
-
-and when b = 0 then error n < 4/2^(n+1)
-
-if b n = 1
-  then 1/2^n * (2 approx (n) + 1/2^n) <= error (n)
-
-If b n = 0 
-  then error (n) < 1/2^n * (2 approx (n) + 1/2^n)
-
-== b n = 0 ==
-
-Since forall n, approx (n) < 2, we can max error n when b = 0 as:
-  error (n) < 1/2^n * (4 + 1/2^n)
-The problem is that this is greater than 4/2^(n+1)
-
-So we maximize our equation for error (S n) by substituting this upper bound for error n into our error (n+1) equation:
-
-(1/2^n * (2 approx (n) + 1/2^n)) - ((b n / 2^n) * (2 * approx n + (b n / 2^n))) = error (n + 1)
-(1/2^n * (2 approx (n) + 1/2^n)) - 0 = error (n + 1)
-
-and show that this equation is less than 4/2^(S n) = 2/2^n
-
-This inequality holds when approx (n) <= 1-1/2^(n+1)
-
-This inequality is obviously false because 1-1/2^(n+1) is equivalent to subtracting 1 from the next bit in 1.0000. this gives a value less than 1.
-
-approx (n) >= 1.0000000.
-
-we need more constraints. approx (n) >= 1.00000 only because 1 <= a
-
-we know that error (n) < 4/2^n and that error (n) < 1/2^n * (2 * approx (n) + 1/2^n).
-
-We can substitute both of these equations into the error (n+1) equation to derive upper bounds for approx (n).
-
-substituting error (n) = 4/2^n we get:
-
-
-
-
-
-
-now error (n) = a - approx (n)^2
-but a < 2
-so error (n) < 2 - approx (n)^2
-which implies that approx (n)^2 < 2 - error (n)
-
-we want to maximize approx (n) and show that it must be <= 1-1/2^(n+1)
-if error (n) is less than 4/2^(n+1) we dont have an issue. so this is the smallest value that error (n) can be to maximize approx (n).
-Hence 
-
-approx(n)^2 < 2 - 2/2^n
-
-does this imply that approx(n) < 1-1/2^(n+1)?
+This proves that forall n, error (n), 8/2^n.
