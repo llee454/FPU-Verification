@@ -1,4 +1,27 @@
 (*
+  This file proves that the width used by the
+  rem register in Hausner's implementation if
+  large enough to store any intermediate value
+  that may result while computing the square
+  root of a floating point binary number having
+  an even exponent.
+
+  Coq is ill-suited to algebraic
+  manipulations. Whenever, we have relied on
+  an algebraic transformation that we could
+  not verify simply using Coq, we have placed
+  the associated equation in a conjecture and
+  verified it using Maxima - an open source CAS
+  similar to Maple and Mathematica.
+
+  Maxima can solve simple equations and
+  inequalities. Whenever we have marked a
+  conjecture as "verified" using Maxima, we
+  have used Maxima to prove that the equation or
+  inequality holds. On the other hand, whenever
+  we have marked a conjecture as "tested" using
+  Maxima, we have verified that it holds over
+  a range of numerical examples.
 *)
 
 Require Import base.
@@ -96,11 +119,11 @@ Lemma error_n
 Proof
   fun n
     => Rplus_eq_compat_r (- (approx n)^2) a ((approx n)^2 + (error n)) (murali n)
-         || a - (approx n)^2 = X @X by <- Rplus_assoc ((approx n)^2) (error n) (- (approx n)^2)
+         || a - (approx n)^2 = X                @X by <- Rplus_assoc ((approx n)^2) (error n) (- (approx n)^2)
          || a - (approx n)^2 = (approx n)^2 + X @X by <- Rplus_comm (error n) (- (approx n)^2)
-         || a - (approx n)^2 = X @X by Rplus_assoc ((approx n)^2) (- (approx n)^2) (error n)
-         || a - (approx n)^2 = X + error n @X by <- Rplus_opp_r ((approx n)^2)
-         || a - (approx n)^2 = X @X by <- Rplus_0_l (error n).
+         || a - (approx n)^2 = X                @X by Rplus_assoc ((approx n)^2) (- (approx n)^2) (error n)
+         || a - (approx n)^2 = X + error n      @X by <- Rplus_opp_r ((approx n)^2)
+         || a - (approx n)^2 = X                @X by <- Rplus_0_l (error n).
 
 (**
   Provides an algebraic expansion for [error].
@@ -178,9 +201,9 @@ Lemma approx_n_sqr
 Proof
   fun n
     => Rplus_eq_compat_r (- error n) a ((approx n)^2 + error n) (murali n)
-         || a - error n = X @X by <- Rplus_assoc ((approx n)^2) (error n) (- (error n))
+         || a - error n = X                @X by <- Rplus_assoc ((approx n)^2) (error n) (- (error n))
          || a - error n = (approx n)^2 + X @X by <- Rplus_opp_r (error n)
-         || a - error n = X @X by <- Rplus_0_r ((approx n)^2).
+         || a - error n = X                @X by <- Rplus_0_r ((approx n)^2).
 
 (**
   Represents the [approx] in terms of [a] and
@@ -336,9 +359,9 @@ Proof
            || a < X @X by error_upper_bound_approx_0 n
            || a < X @X by <- Rplus_comm ((approx n)^2) ((4/2^n)*(approx n + 1/2^n)))
        || X < ((4/2^n)*(approx n + 1/2^n) + (approx n)^2) - ((approx n)^2) @X by <- error_n n
-       || error n < X @X by <- Rplus_assoc ((4/2^n)*(approx n + 1/2^n)) ((approx n)^2) (- ((approx n)^2))
+       || error n < X                              @X by <- Rplus_assoc ((4/2^n)*(approx n + 1/2^n)) ((approx n)^2) (- ((approx n)^2))
        || error n < (4/2^n)*(approx n + 1/2^n) + X @X by <- Rplus_opp_r ((approx n)^2)
-       || error n < X @X by <- Rplus_0_r ((4/2^n)*(approx n + 1/2^n)).
+       || error n < X                              @X by <- Rplus_0_r ((4/2^n)*(approx n + 1/2^n)).
 
 (** TODO: Verify. *)
 Conjecture rem_register_even_exp_0
