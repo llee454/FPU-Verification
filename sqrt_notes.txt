@@ -13,6 +13,9 @@ a = approx (n)^2 + error (n)
 error (n + 1) = error (n) - (b (n)/2^n) * (2 * approx (n) + b (n)/2^n)
 
 a < (approx (n) + 2/2^n)^2
+intuitively, because adding 2/2^n flips a bit that was a 0 in approx (n). That bit was 0 precisely to ensure that approx (n)^2 was less than a.
+
+a < (approx (n) + 2/2^n)^2
 a < approx (n)^2 + 4/2^n * (approx (n) + 1/2^n)
 a - approx (n)^2 < 4/2^n * (approx (n) + 1/2^n)
 error (n) < 4/2^n * (approx (n) + 1/2^n)
@@ -22,9 +25,6 @@ approx (n)^2 = a - error (n)
 approx (n)^2 < 2 - 0
 approx (n) < 2^(1/2)
 0 <= approx (n) < 2^(1/2)
-
-a < (approx (n) + 2/2^n) 
-intuitively, because adding 2/2^n flips a bit that was a 0 in approx (n). That bit was 0 precisely to ensure that approx (n)^2 was less than a.
 
 subst the upper bound for approx (n) into the bounds for error (n) gives:
 
@@ -37,10 +37,6 @@ subst the upper bound for approx (n) into the bounds for error (n) gives:
 We can prove that the goal holds for n = 0 using my proof that error (n) < 4 for n = 0.
 
 For all n > 0, direct calculation using error (n) < (5.656854249492383+4/2^n)/2^n gives it.
-
-
-
-
 
 clearly this holds for n = 0 and n = 1 (I already have a proof that forall n, error (n) < 4.
 
