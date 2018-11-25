@@ -167,30 +167,31 @@ Proof
 (**
   Proves that [approx] is always positive.
 *)
-Definition approx_is_positive
-  :  forall n : nat, 0 <= approx n
-  := nat_ind _
-       (Req_le_sym 0 (approx 0) approx_0)
-       (fun n (H : 0 <= approx n)
-         => Rle_trans 0
-              (approx n + 0)
-              (approx n + (b n)/(2^n))
-              (H || 0 <= X @X by Rplus_0_r (approx n))
-              (Rplus_le_compat_l
-                (approx n)
-                0
-                ((b n)/(2^n))
-                ((Rmult_le_compat_r
-                  (/(2^n))
-                  0
-                  (b n)
-                  (Rlt_le 0 (/(2^n))
-                    (Rinv_0_lt_compat (2^n)
-                       (pow_lt 2 n Rlt_0_2)))
-                  (b_lower_bound n))
-                  || X <= (b n)/(2^n) @X by <- Rmult_0_l (/(2^n)))
-                )
-            || 0 <= X @X by (approx_Sn n)).
+Lemma approx_is_positive
+  :  forall n : nat, 0 <= approx n.
+Proof
+  nat_ind _
+    (Req_le_sym 0 (approx 0) approx_0)
+    (fun n (H : 0 <= approx n)
+      => Rle_trans 0
+           (approx n + 0)
+           (approx n + (b n)/(2^n))
+           (H || 0 <= X @X by Rplus_0_r (approx n))
+           (Rplus_le_compat_l
+             (approx n)
+             0
+             ((b n)/(2^n))
+             ((Rmult_le_compat_r
+               (/(2^n))
+               0
+               (b n)
+               (Rlt_le 0 (/(2^n))
+                 (Rinv_0_lt_compat (2^n)
+                    (pow_lt 2 n Rlt_0_2)))
+               (b_lower_bound n))
+               || X <= (b n)/(2^n) @X by <- Rmult_0_l (/(2^n)))
+             )
+         || 0 <= X @X by (approx_Sn n)).
 
 (**
   Expresses the square of [approx] in terms of
@@ -228,19 +229,11 @@ Proof
 (**
   Asserts a weak constant upper bound for
   [approx].
+
+  approx n = sqrt(a - error n) < sqrt(2)
 *)
 Conjecture approx_upper_bound
   :  forall n : nat, approx n < sqrt 2.
-(*
-Proof
-  fun n
-    => sqrt_lt_1 
-         (a - error n)
-         2
-         (approx_squared_is_positive n)
-         two_is_positive
-         (
-*)
 
 (* verified using Maxima *)
 Conjecture a_upper_bound_0
@@ -260,6 +253,13 @@ Conjecture a_upper_bound_1
   b n = 1
                        <= (approx n + 1/2^n + 1/2^n)^2
                        trivial 
+
+  Verified using Maxima
+  load(ineq);
+  assume(0<approx(n));
+  assume(0<approx(n+1));
+  assume(approx(n)<approx(n+1));
+  is((approx(n)+1/2^n)^2<=(approx(n+1)+2/2^(n+1))^2);
 *)
 Conjecture a_upper_bound_2
   : forall n : nat, (approx n + 1/2^n)^2 <= (approx (S n) + 2/2^(S n))^2.
@@ -363,11 +363,27 @@ Proof
        || error n < (4/2^n)*(approx n + 1/2^n) + X @X by <- Rplus_opp_r ((approx n)^2)
        || error n < X                              @X by <- Rplus_0_r ((4/2^n)*(approx n + 1/2^n)).
 
-(** TODO: Verify. *)
+(**
+  TODO: Verify.
+  verified using Maxima.
+
+  load(ineq);
+  assume(approx(n)<sqrt(2));
+  assume(0<n);
+  is((approx(n)+1/2^n)<(sqrt(2)+1/2^n));
+*)
 Conjecture rem_register_even_exp_0
   :  forall n : nat, (4/2^n)*(approx n + 1/2^n) < (4/2^n)*(sqrt 2 + 1/2^n).
 
-(** TODO: Verify. Tested using Maxima *)
+(** TODO: Verify. 
+  Verified using maxima.
+  Is equivalent to:
+  1/2^(n+1) + sqrt(2) < 2
+  1/2^(n+1) + sqrt(2) < 1/2^(n+1) + 1.5 <= 2
+                        1/2^(n+1)       <= 2 - 1.5
+                        1/2^(n+1)       <= 1/2
+  
+*)
 Conjecture rem_register_even_exp_1
   :  forall n : nat, (4/2^(S n))*(sqrt 2 + 1/2^(S n)) < 8/2^(S n).
 
