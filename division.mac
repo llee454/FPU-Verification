@@ -1,234 +1,56 @@
 /*
 */
 
-/*
-  Accepts a bit sequence that represents a
-  binary number, for example [0, 1] represents 2,
-  and returns the decimal equivalent.
-*/
-decode (bits)
-  := if bits = []
-       then 0
-       else block (
-         [b0, bs],
-         b0 : first (bits),
-         bs : rest (bits),
-         b0 + (2 * decode (bs))); 
-
-
-/*
-  Accepts a natural number and returns a bit
-  sequence that represents the number.
-*/
-encode (k)
-  := if k <= 1
-       then [k]
-       else block ([result],
-         result : divide (k, 2),
-         cons (result [2], encode (result [1])));
-
-/*
-*/
-clean (b) := encode (decode (b));
-
-/*
-  Accepts a bit sequence where the most
-  significant bit is first, and returns the
-  natural number represented by the sequence.
-*/
-decodeR (b) := decode (reverse (b));
-
-/*
-  Accepts a natural number and returns a bit
-  sequence, where the most significant bit is
-  first, that represents the natural number.
-*/
-encodeR (k) := reverse (encode (k));
-
-/*
-  Accepts a bit sequence in which the most
-  significant bit is first and removes any
-  leading 0s.
-*/
-cleanR (b) := encodeR (decodeR (b));
-
-/*
-  Accepts two binary numbers, where the most
-  significan bits are first: x and y, and returns
-  a pair (q, r) that denotes the divisor of x
-  and y and their remainder.
-*/
-divR (x, y) := 
-  block ([result],
-    result : divRAux (x, y, []),
-    [cleanR (result [1]), cleanR (result [2])]);
-
-/*
-  Implements long binary division.
-*/
-divRAux (x, y, r)
-  := if y = []
-       then [[], r]
-       else block (
-         [ys, z],
-         ys : rest (y),
-         z : append (r, [y [1]]),
-         if decodeR (x) <= decodeR (z)
-           then block ([result],
-             result : divRAux (x, ys, encodeR (decodeR (z) - decodeR (x))),
-             [cons (1, result [1]), result [2]])
-           else block ([result],
-             result : divRAux (x, ys, z),
-             [cons (0, result [1]), result [2]]));
-
-/*
-  Accepts two binary numbers, where the least
-  significant bits are first: x and y; and
-  returns a pair (q, r) where q is the divisor
-  of x/y and r is the remainder.
-*/
-div (x, y)
-  := block (
-       [result, q, r],
-       result : divR (reverse (x), reverse (y)),
-       [clean (reverse (result [1])), clean (reverse (result [2]))]);
-
-
-decodeA (x)
-  := decodeR (listarray (x));
-
-encodeA (n, k)
-  := encodeAAux (n, k, make_array (fixnum, n));
-
-encodeAAux (n, k, x)
+murali_q (n)
   := if n = 0
-       then x
-       else block (
-         [result],
-         result : divide (k, 2),
-         x [n - 1] : result [2],
-         encodeAAux (n - 1, result [1], x));
+       then 0
+       else murali_q (n - 1) + murali_c (n - 1) * 2^(1 - n);
 
-/*
-  Accepts five arguments:
-  * n, a natural number giving the length of the binary vectors x, y, q, and r;
-  * x, a binary vector of length n
-  * y, a binary vector of length n
-  * q, a binary vector of length n + 2 initially all 0s
-  * and r, a binary vector of length n initially all 0s
-  and returns x/y = q + r.
-*/
-divArrayAux (n, i, x, y, q, r)
-  := if i = 0
-       then [q, r]
-       else block ([z],
-         z : encodeA (n, 2 * decodeA (r) + y [n - i]),
-         if decodeA (x) <= decodeA (z)
-           then block (
-             z : encodeA (n, decodeA (z) - decodeA (x)),
-             q [n - i] : 1),
-         divArrayAux (n, i - 1, x, y, q, z));
+murali_ri (n) := 2 * a - murali_q (n) * 2 * b;
 
-/*
-*/
-divArray (n, x, y)
-  := block ([q, r],
-       q : encodeA (n, 0),
-       r : encodeA (n, 0),
-       divArrayAux (n, n, x, y, q, r));
+murali_r (n)
+  := if n = 0
+       then 2 * a
+       else murali_ri (n - 1) - murali_c (n - 1) * 2^(1 - n) * 2 * b;
 
-
-/*
-  q0 - represents the initial bit
-  r0 - represents the initial remainder
-  qi - represents the ith bit in the quotient.
-  ci - represents the bit computed in the ith iteration
-  ri - represents the ith bit in the remainder
-  summary_i - indicates whether or not the bits following the last bit are all 0.
-
-
-  computes b/a 
-*/
-
-sigWidth : 11;
-
-defstruct (hauserState (
-  a,                          /* converted into a float using rawFloatFromRecFN */
-  b,                          /* a/b */
-  skipCycle,                  /* unknown */
-  cycleNum,                   /* the iteration count */
-  fractB_Z,                   /* unknown */
-  rem_Z,                      /* the remainder */
-  notZeroRem_Z,               /* true if remainder is not zero */
-  sigX_Z                      /* unknown */
-));
-
-hauserInitial (a, b)
-  := block (
-       [cycleNum, rem, bitMask, trialTerm, trialRem, newBit],
-       rem       : 2 * decodeR (a),
-       bitMask   : 0,
-       trialTerm : 2 * decodeR (b),
-       trialRem  : 2 * (decodeR (a) - decodeR (b)),
-       newBit    : if 0 <= 2 * (decodeR (a) - decodeR (b))
-                     then 1
-                     else 0,
-       new (hauserState (
-         a,
-         b,
-         false,
-         sigWidth + 2,
-         rest (b, 2),
-         encodeR (
-           if 0 <= 2 * (decodeR (a) - decodeR (b))
-             then 2 * (decodeR (a) - decodeR (b))
-             else 2 * decodeR (a)),
-         not (is (0 = decodeR (a) - decodeR (b))),
-         encodeR (newBit * 2 ^ (sigWidth + 1))
-       )));
-
-hauserStep (state)
-  := block (
-       [rem, bitMask, trialTerm, trialRem, newBit],
-       rem : 2 * decodeR (state@rem_Z),
-       bitMask : 2 ^ (state@cycleNum - 2),
-       trialTerm : 2 * decodeR (cons (1, state@fractB_Z)),
-       trialRem : rem - trialTerm,
-       newBit : if 0 <= trialRem
-         then 1
-         else 0,
-       new (hauserState (
-         state@a, /* a */
-         state@b, /* b */
-         is (state@cycleNum = 3) and sigX_Z [5], /* skipCycle */
-         if state@skipCycle                      /* cycleNum */
-           then 1
-           else state@cycleNum - 1,
-         state@fractB_Z,                         /* fractB_Z */
-         encodeR (if state@cycleNum > 2           /* rem_Z */
-           then if 1 = newBit
-                  then trialRem
-                  else rem
-           else state@rem_Z),
-         not (is (0 = trialRem)),                /* notZeroRem_Z */
-         state@sigX_Z                            /* sigX_Z */
-       ))); 
-
-/* Murali's recurrence relations. */
-/*
-remainder (n)
-  := 2 * a - q (n) * 2 * b;
-
-c (n)
-  := if (remainder (n) >= 2^(n) * 2 * b)
+murali_c (n)
+  := if 2^(- n) * 2 * b <= murali_ri (n)
        then 1
        else 0;
 
-q (n)
+murali_summary (n)
+  := if murali_ri (n) = 0
+       then 0
+       else 1;
+
+hauser_sig (n)
   := if n = 0
        then 0
-       else q (n - 1) + c (n - 1) * 2 ^ (n);
+       else hauser_sig (n - 1) + hauser_c (n - 1) * hauser_bit (n - 1);
 
+hauser_rem (n)
+  := if n = 0
+       then a
+       else 2 * hauser_rem (n - 1) - hauser_c (n - 1) * 2 * b;
 
-summary (n) := not (is (remainder (n) = 0));
-*/
+hauser_c (n)
+  := if 2 * b <= 2 * hauser_rem (n)
+     then 1
+     else 0;
+
+hauser_bit (n)
+  := 2^(hauser_cycle (n) - 2);
+
+hauser_cycle (n)
+  := if n = 0
+       then s + 3
+       else hauser_cycle (n - 1) - 1;
+
+hauser_summary (n)
+  := if n = 1 
+       then if a = b
+              then 0
+              else 1
+       else if hauser_c (n - 1) = 1
+              then 2 * hauser_rem (n - 1) = 2 * b
+              else hauser_summary (n - 1);

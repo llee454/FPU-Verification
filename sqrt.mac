@@ -41,6 +41,9 @@ hauser_cycle (n)
 
 /* ======== */
 
+/*
+  run hauser_m_sig(5)^2,a=1.5;
+*/
 hauser_m_sig (n)
   := if n = 0
        then 0
