@@ -126,3 +126,53 @@ error (n) < b * 2/2^n
           < 2 * 2/2^n
           < 4/2^n
 ```
+
+Proving that Murali's Algorithm is Correct
+------------------------------------------
+
+To prove that Murali's algorithm is correct, we must show that it converges to the true quotient. To do this, we can use a fundamental result from real analysis which states that any bounded monotonically increasing sequence converges to its bound.
+
+This theorem is represented by Coq's `Un_cv` predicate.
+
+```
+Definition Un_cv
+  := fun (Un : nat -> R) (l : R)
+      => forall eps : R,
+           (eps > 0)%R ->
+           exists N : nat, forall n : nat, n >= N -> (R_dist (Un n) l < eps)%R
+  : (nat -> R) -> R -> Prop
+```
+
+The correctness statement for the division algorithm is:
+
+```
+Theorem murali_is_correct : Un_cv approx (a/b).
+```
+
+expanding this goal gives:
+
+```
+forall eps : R, eps > 0 ->
+  exists n : nat, (forall m : nat, n <= m -> R_dist (approx n) (a/b) < eps).
+```
+
+This means that, given a value for `eps` we must return a value for `n` such that `Rabs (approx n - a/b)) < eps`.
+
+We know that:
+
+```
+         error n < 4/2^n
+a - b * approx n < 4/2^n
+  a/b - approx n < 1/b * 4/2^n
+|approx n - a/b| < 1/b * 4/2^n
+```
+
+From this, we can easily derive a value for `n` such that `|approx n - a/b| < eps`. To do so, simply equate `eps = 1/b * 4/2^n` and solve for n. Doing so gives:
+
+```
+          eps = 1/b * 4/2^n
+2^n * b * eps = 4
+          2^n = 4/(b * eps)
+            n = log2 (4) - log2 (b * eps)
+            n = 2 - log2 (b) - log2 (eps)
+```
