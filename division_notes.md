@@ -29,7 +29,7 @@ From these equations and constraints, we can derive the formula for `bit (n)`:
 
 ```
 bit (n)
-  := if b * approx (n) + 1/2^n <= a
+  := if b * (approx (n) + 1/2^n) <= a
        then 1
        else 0
 ```
