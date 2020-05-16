@@ -5,23 +5,6 @@
   that may result while computing the square
   root of a floating point binary number having
   an even exponent.
-
-  Coq is ill-suited to algebraic
-  manipulations. Whenever, we have relied on
-  an algebraic transformation that we could
-  not verify simply using Coq, we have placed
-  the associated equation in a conjecture and
-  verified it using Maxima - an open source CAS
-  similar to Maple and Mathematica.
-
-  Maxima can solve simple equations and
-  inequalities. Whenever we have marked a
-  conjecture as "verified" using Maxima, we
-  have used Maxima to prove that the equation or
-  inequality holds. On the other hand, whenever
-  we have marked a conjecture as "tested" using
-  Maxima, we have verified that it holds over
-  a range of numerical examples.
 *)
 
 Require Import base.
@@ -94,7 +77,7 @@ Axiom error_is_positive : forall n : nat, 0 <= error (n).
   and the discrepancy between the square of our
   approximation and [a].
 *)
-Axiom murali : forall n : nat, 2*a = (approx n)^2 + error n.
+Axiom spec : forall n : nat, 2*a = (approx n)^2 + error n.
 
 Lemma two_a_lt_4
   : 2*a < 4.
@@ -108,7 +91,7 @@ Lemma error_n
   :  forall n : nat, 2*a - (approx n)^2 = error n.
 Proof
   fun n
-    => Rplus_eq_compat_r (- (approx n)^2) (2*a) ((approx n)^2 + (error n)) (murali n)
+    => Rplus_eq_compat_r (- (approx n)^2) (2*a) ((approx n)^2 + (error n)) (spec n)
          || 2*a - (approx n)^2 = X                @X by <- Rplus_assoc ((approx n)^2) (error n) (- (approx n)^2)
          || 2*a - (approx n)^2 = (approx n)^2 + X @X by <- Rplus_comm (error n) (- (approx n)^2)
          || 2*a - (approx n)^2 = X                @X by Rplus_assoc ((approx n)^2) (- (approx n)^2) (error n)
@@ -323,7 +306,7 @@ Proof nat_ind _
                        (Req_le
                          (2*a)
                          ((approx n)^2 + error n)
-                         (murali n))
+                         (spec n))
                        (Rplus_lt_compat_l
                          ((approx n)^2)
                          (error n)
