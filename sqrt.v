@@ -146,9 +146,13 @@ Proof
 *)
 Axiom b_0 : forall n : nat, b n = 0 -> error n < 1/2^n * (2 * approx n + 1/2^n).
 
+(*
+  0 <= error (n + 1)
+  0 <= error (n) + b (n)/2^n (2 approx (n) + b (n)/2^n)
+  b (n)/2^n (2 approx (n) + b (n)/2^n) <= error (n)
+*)
 Lemma b_1 : forall n : nat, b n = 1 -> 1/2^n * (2 * approx n + 1/2^n) <= error n.
 Proof.
-refine (
   fun n H =>
     Rplus_le_compat_r
       (b n/2^n * (2 * approx n + b n/2^n)) 0
@@ -162,8 +166,7 @@ refine (
         (b n/2^n * (2 * approx n + b n/2^n))
     || _ <= _ + X @X by <- Rplus_opp_l (b n / 2 ^ n * (2 * approx n + b n / 2 ^ n))
     || _ <= X @X by <- Rplus_0_r (error n)
-    || X @X by ltac:(rewrite H; reflexivity)
-).
+    || X @X by ltac:(rewrite H; reflexivity).
 
 (*
   Proves that every bit is greater than or equal
