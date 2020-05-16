@@ -5,23 +5,6 @@
   that may result while computing the square
   root of a floating point binary number having
   an even exponent.
-
-  Coq is ill-suited to algebraic
-  manipulations. Whenever, we have relied on
-  an algebraic transformation that we could
-  not verify simply using Coq, we have placed
-  the associated equation in a conjecture and
-  verified it using Maxima - an open source CAS
-  similar to Maple and Mathematica.
-
-  Maxima can solve simple equations and
-  inequalities. Whenever we have marked a
-  conjecture as "verified" using Maxima, we
-  have used Maxima to prove that the equation or
-  inequality holds. On the other hand, whenever
-  we have marked a conjecture as "tested" using
-  Maxima, we have verified that it holds over
-  a range of numerical examples.
 *)
 
 Require Import base.
@@ -94,7 +77,7 @@ Axiom error_is_positive : forall n : nat, 0 <= error (n).
   and the discrepancy between the square of our
   approximation and [a].
 *)
-Axiom murali : forall n : nat, a = (approx n)^2 + error n.
+Axiom spec : forall n : nat, a = (approx n)^2 + error n.
 
 (**
   Proves that the discrepancy between the square
@@ -105,7 +88,7 @@ Lemma error_0
   :  error 0 = a.
 Proof
   eq_sym
-    (murali 0
+    (spec 0
       || a = (X)^2 + error 0 @X by <- approx_0
       || a = X + error 0 @X by <- Rmult_0_l (0 * 1)
       || a = X @X by <- Rplus_0_l (error 0)).
@@ -118,28 +101,45 @@ Lemma error_n
   :  forall n : nat, a - (approx n)^2 = error n.
 Proof
   fun n
-    => Rplus_eq_compat_r (- (approx n)^2) a ((approx n)^2 + (error n)) (murali n)
+    => Rplus_eq_compat_r (- (approx n)^2) a ((approx n)^2 + (error n)) (spec n)
          || a - (approx n)^2 = X                @X by <- Rplus_assoc ((approx n)^2) (error n) (- (approx n)^2)
          || a - (approx n)^2 = (approx n)^2 + X @X by <- Rplus_comm (error n) (- (approx n)^2)
          || a - (approx n)^2 = X                @X by Rplus_assoc ((approx n)^2) (- (approx n)^2) (error n)
          || a - (approx n)^2 = X + error n      @X by <- Rplus_opp_r ((approx n)^2)
          || a - (approx n)^2 = X                @X by <- Rplus_0_l (error n).
 
+Lemma pow2 : forall n : R, n^2 = n * n.
+Proof
+  fun n =>
+    eq_refl (n^2)
+    || n^2 = n * X @X by <- Rmult_1_r n.
+
 (**
   Provides an algebraic expansion for [error].
   Verified using Maxima.
 *)
-Conjecture error_Sn
+Lemma error_Sn
   :  forall n : nat, error (S n) = error n - (b n)/(2^n) * (2 * approx n + (b n)/(2^n)).
-(*
 Proof
-  fun n
-    => eq_sym (error_n (S n))
-        || error (S n) = a - X^2 @X by approx_Sn n
-        || error (S n) = a - (approx n + b n/2^n) * X @X Rmult_1_r (approx n + b n/2^n)
-        || error (S n) = a - X @X by Rmult_plus_distr_l (approx n + b n/2^n) (approx n) (b n/2^n)
-        || error (S n) = a - X ((approx n + b n/2^n) * b n/2^n) @X by Rmult_plus_distr_r (approx n) (b n/2^n) (approx n)
-*)
+  fun n =>
+    eq_sym (error_n (S n))
+    || error (S n) = a - X^2 @X by <- approx_Sn n
+    || _ = a - (approx n + b n/2^n) * X @X by <- Rmult_1_r (approx n + b n/2^n)
+    || _ = _ - X @X by <- Rmult_plus_distr_r (approx n) ((b n)/(2^n)) (approx n + b n/2^n)
+    || _ = _ - (X + _) @X by <- Rmult_plus_distr_l (approx n) (approx n) (b n/2^n)
+    || _ = _ - (_ + X) @X by <- Rmult_plus_distr_l (b n/2^n) (approx n) (b n/2^n)
+    || _ = _ - ((X + _) + _) @X by pow2 (approx n)
+    || _ = _ - X @X by Rplus_assoc ((approx n)^2 + approx n * (b n/2^n)) (b n/2^n * approx n) ((b n/2^n) * (b n/2^n))
+    || _ = _ - (X + _) @X by <- Rplus_assoc ((approx n)^2) (approx n * (b n/2^n)) (b n/2^n * approx n)
+    || _ = _ - (_ + (_ + X) + _) @X by <- Rmult_comm (b n/2^n) (approx n)
+    || _ = _ - (_ + X + _) @X by double (approx n * (b n/2^n))
+    || _ = _ - X @X by <- Rplus_assoc ((approx n)^2) (2 * ((approx n) * (b n/2^n))) ((b n/2^n)*(b n/2^n))
+    || _ = _ + X @X by <- Ropp_plus_distr ((approx n)^2) (2 * (approx n * (b n/2^n)) + (b n/2^n)*(b n/2^n))
+    || _ = X @X by Rplus_assoc a (- (approx n)^2) (- (2*(approx n * (b n/2^n)) + (b n/2^n)*(b n/2^n)))
+    || _ = X + _ @X by <- error_n n
+    || _ = _ - (X + _) @X by Rmult_assoc 2 (approx n) (b n/2^n)
+    || _ = _ - X @X by Rmult_plus_distr_r (2 * (approx n)) (b n/2^n) (b n/2^n)
+    || _ = _ - X @X by <- Rmult_comm (2 * approx n + b n/2^n) (b n/2^n).
 
 (*
   Asserts bounds for [error] and [approx] based
@@ -201,7 +201,7 @@ Lemma approx_n_sqr
   :  forall n : nat, a - error n = (approx n)^2.
 Proof
   fun n
-    => Rplus_eq_compat_r (- error n) a ((approx n)^2 + error n) (murali n)
+    => Rplus_eq_compat_r (- error n) a ((approx n)^2 + error n) (spec n)
          || a - error n = X                @X by <- Rplus_assoc ((approx n)^2) (error n) (- (error n))
          || a - error n = (approx n)^2 + X @X by <- Rplus_opp_r (error n)
          || a - error n = X                @X by <- Rplus_0_r ((approx n)^2).
@@ -286,7 +286,7 @@ Proof nat_ind _
                        ((approx n)^2 + 1/2^n*(2*approx (n) + 1/2^n))
                        (Req_le a
                          ((approx n)^2 + error n)
-                         (murali n))
+                         (spec n))
                        (Rplus_lt_compat_l
                          ((approx n)^2)
                          (error n)
