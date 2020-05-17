@@ -323,6 +323,19 @@ Proof.
   exact (le_eq y x z Hy H).
 Qed.
 
+Lemma Rle_minus_0 : forall x : R, 0 <= x -> - x <= 0.
+Proof.
+  intros x H.
+  apply (le_eq x (- x) 0 H (Rplus_opp_r x)).
+Qed.
+
+Lemma inv_2n : forall n : nat, 0 <= /2^n.
+Proof.
+  intro n.
+  rewrite <- (Rmult_1_l (/2^n)).
+  exact (Rle_mult_inv_pos 1 (2^n) Rle_0_1 (pow_lt 2 n Rlt_0_2)).
+Qed.
+
 Lemma approx_sqr_is_positive : forall n : nat, 0 <= (approx n)^2.
 Proof.
   intro n.
@@ -367,6 +380,8 @@ Qed.
 
 Axiom neq_2_0 : 2 <> 0.
 Axiom le_1_2 : 1 <= 2.
+Axiom le_0_2 : 0 <= 2.
+Axiom eq_2_2_4 : 2 * 2 = 4.
 
 Lemma a_upper_bound_1
   : forall n : nat, 2/2^(S n) = 1/2^n.
@@ -482,43 +497,84 @@ Proof.
              (b_is_bit n))).
 Qed.
 
-(**
-  Verified using Maxima.
-*)
-Conjecture error_upper_bound_const_0
+Lemma error_Sn_plus
+  :  forall n : nat, error (S n) + (b n/2^n) * (2 * approx n + (b n/2^n)) = error n.
+Proof.
+  intro n.
+  rewrite (error_Sn n).
+  unfold Rminus.
+  rewrite
+    (Rplus_assoc
+      (error n)
+      (- ((b n/2^n) * (2 * approx n + (b n/2^n))))
+         ((b n/2^n) * (2 * approx n + (b n/2^n)))).
+  rewrite (Rplus_opp_l ((b n/2^n) * (2 * approx n + (b n/2^n)))).
+  exact (Rplus_0_r (error n)).
+Qed.
+
+Lemma error_upper_bound_const_0
   : forall n : nat, - ((b n)/(2^n) * (2 * approx n + (b n)/(2^n))) <= 0.
+Proof.
+  intro n.
+  apply (Rle_minus_0 ((b n/2^n) * (2 * approx n + (b n/2^n)))).
+  destruct (b_is_bit n) as [H|H]; rewrite H; unfold Rdiv.
+  + rewrite (Rmult_0_l (/2^n)).
+    rewrite (Rmult_0_l (2 * approx n + 0)).
+    exact (Rle_refl 0).
+  + rewrite (Rmult_1_l (/2^n)).
+    apply (Rmult_le_pos (/2^n) (2 * approx n + /2^n) (inv_2n n)).
+    refine (Rplus_le_le_0_compat (2 * approx n) (/2^n) _ (inv_2n n)).
+    exact (Rmult_le_pos 2 (approx n) le_0_2 (approx_is_positive n)).
+Qed.
 
 (** Proves that [error] is always less than 4. *)
 Theorem error_upper_bound_const
   :  forall n : nat, error n < 4.
-Proof
-  nat_ind _
-    (Rlt_trans
-      (error 0) 2 4
-      (a_upper_bound
-        || X < 2 @X by error_0)
-      (ltac:(fourier) : 2 < 4))
-    (fun n (H : error n < 4)
-      => Rlt_le_trans
-           (error (S n))
-           (4 - ((b n)/(2^n) * (2 * approx n + (b n)/(2^n))))
-           (4 + 0)
-           ((Rplus_lt_compat_r
-             (- ((b n)/(2^n) * (2 * approx n + (b n)/(2^n))))
-             (error n)
-             4
-             H)
-             || X < 4 - ((b n)/(2^n) * (2 * approx n + (b n)/(2^n))) @X by error_Sn n)
-           (Rplus_le_compat_l
-             4
-             (- ((b n)/(2^n) * (2 * approx n + (b n)/(2^n))))
-             0
-             (error_upper_bound_const_0 n))
-         || error (S n) < X @X by <- Rplus_0_r 4).
+Proof.
+  exact
+    (nat_ind _
+      (Rlt_trans
+        (error 0) 2 4
+        (a_upper_bound
+          || X < 2 @X by error_0)
+        (ltac:(fourier) : 2 < 4))
+      (fun n (H : error n < 4)
+        => Rlt_le_trans
+             (error (S n))
+             (4 - ((b n)/(2^n) * (2 * approx n + (b n)/(2^n))))
+             (4 + 0)
+             ((Rplus_lt_compat_r
+               (- ((b n)/(2^n) * (2 * approx n + (b n)/(2^n))))
+               (error n)
+               4
+               H)
+               || X < 4 - ((b n)/(2^n) * (2 * approx n + (b n)/(2^n))) @X by error_Sn n)
+             (Rplus_le_compat_l
+               4
+               (- ((b n)/(2^n) * (2 * approx n + (b n)/(2^n))))
+               0
+               (error_upper_bound_const_0 n))
+           || error (S n) < X @X by <- Rplus_0_r 4)).
+Qed.
 
-(* Verified using Maxima *)
-Axiom error_upper_bound_approx_0
+Lemma error_upper_bound_approx_0
   :  forall n : nat, (approx n)^2 + (4/2^n)*(approx n + 1/2^n) = (approx n + 2/2^n)^2.
+Proof.
+  intro n.
+  rewrite (sqr_expand (approx n) (2/2^n)).
+  unfold Rdiv.
+  rewrite <- (Rmult_1_r 2) at 6.
+  rewrite (Rmult_assoc 2 1 (/2^n)).
+  rewrite <- (Rmult_plus_distr_l 2 (approx n) (1 * /2^n)).
+  rewrite (Rmult_assoc 2 (/2^n) _).
+  rewrite <- (Rmult_assoc (/2^n) 2 (approx n + (1 * /2^n))).
+  rewrite (Rmult_comm (/2^n) 2).
+  rewrite (Rmult_assoc 2 (/2^n) (approx n + (1 * /2^n))).
+  rewrite <- (Rmult_assoc 2 2 (/2^n * (approx n + (1 * /2^n)))).
+  rewrite eq_2_2_4.
+  rewrite <- (Rmult_assoc 4 (/2^n) (approx n + 1 * /2^n)).
+  reflexivity.
+Qed.
 
 (**
   Proves a significant constraint on [error]
@@ -526,19 +582,21 @@ Axiom error_upper_bound_approx_0
 *)
 Theorem error_upper_bound_approx
   :  forall n : nat, error n < (4/2^n)*(approx n + 1/2^n).
-Proof
-  fun n
-    => Rplus_lt_compat_r
-         (- ((approx n)^2))
-         a
-         ((4/2^n)*(approx n + 1/2^n) + (approx n)^2)
-         (a_upper_bound_approx n 
-           || a < X @X by error_upper_bound_approx_0 n
-           || a < X @X by <- Rplus_comm ((approx n)^2) ((4/2^n)*(approx n + 1/2^n)))
-       || X < ((4/2^n)*(approx n + 1/2^n) + (approx n)^2) - ((approx n)^2) @X by <- error_n n
-       || error n < X                              @X by <- Rplus_assoc ((4/2^n)*(approx n + 1/2^n)) ((approx n)^2) (- ((approx n)^2))
-       || error n < (4/2^n)*(approx n + 1/2^n) + X @X by <- Rplus_opp_r ((approx n)^2)
-       || error n < X                              @X by <- Rplus_0_r ((4/2^n)*(approx n + 1/2^n)).
+Proof.
+  exact
+    (fun n
+      => Rplus_lt_compat_r
+           (- ((approx n)^2))
+           a
+           ((4/2^n)*(approx n + 1/2^n) + (approx n)^2)
+           (a_upper_bound_approx n 
+             || a < X @X by error_upper_bound_approx_0 n
+             || a < X @X by <- Rplus_comm ((approx n)^2) ((4/2^n)*(approx n + 1/2^n)))
+         || X < ((4/2^n)*(approx n + 1/2^n) + (approx n)^2) - ((approx n)^2) @X by <- error_n n
+         || error n < X                              @X by <- Rplus_assoc ((4/2^n)*(approx n + 1/2^n)) ((approx n)^2) (- ((approx n)^2))
+         || error n < (4/2^n)*(approx n + 1/2^n) + X @X by <- Rplus_opp_r ((approx n)^2)
+         || error n < X                              @X by <- Rplus_0_r ((4/2^n)*(approx n + 1/2^n))).
+Qed.
 
 (**
   TODO: Verify.
