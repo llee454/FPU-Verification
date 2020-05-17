@@ -366,6 +366,7 @@ Proof.
 Qed.
 
 Axiom neq_2_0 : 2 <> 0.
+Axiom le_1_2 : 1 <= 2.
 
 Lemma a_upper_bound_1
   : forall n : nat, 2/2^(S n) = 1/2^n.
@@ -379,9 +380,26 @@ Proof.
   exact (eq_sym (Rmult_1_l (/2^n))).
 Qed.
 
+Lemma b_is_positive : forall n : nat, 0 <= b n.
+Proof.
+  intro n.
+  destruct (b_is_bit n) as [H|H]; rewrite H.
+  + exact (Rle_refl 0).  
+  + exact Rle_0_1.
+Qed.
+
+(* Proves that [approx] is monotonically increasing. *)
+Lemma approx_inc : forall n : nat, approx n <= approx (S n).
+Proof.
+  intro n.
+  exact
+    (le_eq_comm (approx n) (b n/2^n) (approx (S n))
+      (Rle_mult_inv_pos (b n) (2^n) (b_is_positive n) (pow_lt 2 n Rlt_0_2))
+      (eq_sym (approx_Sn n))).
+Qed.
+
 (*
-  (approx n + 1/2^n)^2 <= (approx (S n) + 2/2^(S n))^2
-                       <= (approx (S n) + 1/2^n)^2
+  (approx n + 1/2^n)^2 <= (approx (S n) + 1/2^n)^2
                        <= (approx n + b n/2^n + 1/2^n)^2
   b n = 0
                        <= (approx n + 1/2^n)^2
@@ -397,49 +415,72 @@ Qed.
   assume(approx(n)<approx(n+1));
   is((approx(n)+1/2^n)^2<=(approx(n+1)+2/2^(n+1))^2);
 *)
-Conjecture a_upper_bound_2
+Lemma a_upper_bound_2
   : forall n : nat, (approx n + 1/2^n)^2 <= (approx (S n) + 2/2^(S n))^2.
+Proof.
+  intro n.
+  rewrite (a_upper_bound_1 n).
+  rewrite (approx_Sn n).
+  destruct (b_is_bit n) as [H|H]; rewrite H.
+  + unfold Rdiv; rewrite (Rmult_0_l (/2^n)); rewrite (Rplus_0_r (approx n));
+    exact (Rle_refl ((approx n + 1/2^n)^2)).
+  + rewrite (a_upper_bound_0 n).
+    apply (pow_incr (approx n + 1/2^n) (approx n + 2/2^n) 2).
+    split.
+    - apply (Rplus_le_le_0_compat (approx n) (1/2^n)).
+      * exact (approx_is_positive n).
+      * exact (Rle_mult_inv_pos 1 (2^n) Rle_0_1 (pow_lt 2 n Rlt_0_2)).
+    - apply (Rplus_le_compat_l (approx n) (1/2^n) (2/2^n)).
+      unfold Rdiv.
+      apply (Rmult_le_compat_r (/2^n) 1 2).
+      * rewrite <- (Rmult_1_l (/2^n)).
+        exact (Rle_mult_inv_pos 1 (2^n) Rle_0_1 (pow_lt 2 n Rlt_0_2)).
+      * exact (le_1_2).
+Qed.
 
 (**
 *)
 Theorem a_upper_bound_approx
   :  forall n : nat, a < (approx n + 2/2^n)^2.
-Proof nat_ind _
-       ((Rlt_trans a 2 4
-         a_upper_bound
-         (ltac:(fourier)))
-         || a < X @X by (ltac:(field) : (0 + 2/2^0)^2 = 4)
-         || a < (X + 2/2^0)^2 @X by approx_0)
-       (fun n (H : a < (approx n + 2/2^n)^2)
-         => sumbool_ind
-              (fun _ => a < (approx (S n) + 2/2^(S n))^2)
-              (fun H0 : b n = 0
-                => Rlt_le_trans a
-                     ((approx n + 1/2^n)^2)
-                     ((approx (S n) + 2/2^(S n))^2)
-                     (Rle_lt_trans a
-                       ((approx n)^2 + error n)
-                       ((approx n)^2 + 1/2^n*(2*approx (n) + 1/2^n))
-                       (Req_le a
-                         ((approx n)^2 + error n)
-                         (spec n))
-                       (Rplus_lt_compat_l
-                         ((approx n)^2)
-                         (error n)
-                         (1/2^n*(2*approx (n) + 1/2^n))
-                         (b_0 n H0))
-                       || a < X @X by (ltac:(ring) : ((approx (n) + 1/2^n)^2) = (approx (n)^2 + 1/2^n*(2*approx (n) + 1/2^n))))
-                     (a_upper_bound_2 n))
-              (fun H0 : b n = 1
-                => let H1
-                     :  approx (S n) = approx n + 1/2^n
-                     := approx_Sn n
-                          || approx (S n) = approx n + (X/2^n) @X by <- H0 in
-                   H
-                   || a < X^2 @X by a_upper_bound_0 n
-                   || a < (X + 1/2^n)^2 @X by H1
-                   || a < (approx (S n) + X)^2 @X by a_upper_bound_1 n)
-              (b_is_bit n)).
+Proof.
+  exact
+    (nat_ind _
+      ((Rlt_trans a 2 4
+        a_upper_bound
+        (ltac:(fourier)))
+        || a < X @X by (ltac:(field) : (0 + 2/2^0)^2 = 4)
+        || a < (X + 2/2^0)^2 @X by approx_0)
+      (fun n (H : a < (approx n + 2/2^n)^2)
+        => sumbool_ind
+             (fun _ => a < (approx (S n) + 2/2^(S n))^2)
+             (fun H0 : b n = 0
+               => Rlt_le_trans a
+                    ((approx n + 1/2^n)^2)
+                    ((approx (S n) + 2/2^(S n))^2)
+                    (Rle_lt_trans a
+                      ((approx n)^2 + error n)
+                      ((approx n)^2 + 1/2^n*(2*approx (n) + 1/2^n))
+                      (Req_le a
+                        ((approx n)^2 + error n)
+                        (spec n))
+                      (Rplus_lt_compat_l
+                        ((approx n)^2)
+                        (error n)
+                        (1/2^n*(2*approx (n) + 1/2^n))
+                        (b_0 n H0))
+                      || a < X @X by (ltac:(ring) : ((approx (n) + 1/2^n)^2) = (approx (n)^2 + 1/2^n*(2*approx (n) + 1/2^n))))
+                    (a_upper_bound_2 n))
+             (fun H0 : b n = 1
+               => let H1
+                    :  approx (S n) = approx n + 1/2^n
+                    := approx_Sn n
+                         || approx (S n) = approx n + (X/2^n) @X by <- H0 in
+                  H
+                  || a < X^2 @X by a_upper_bound_0 n
+                  || a < (X + 1/2^n)^2 @X by H1
+                  || a < (approx (S n) + X)^2 @X by a_upper_bound_1 n)
+             (b_is_bit n))).
+Qed.
 
 (**
   Verified using Maxima.
