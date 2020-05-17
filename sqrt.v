@@ -365,9 +365,19 @@ Proof.
   reflexivity.
 Qed.
 
-(* verified using Maxima *)
-Conjecture a_upper_bound_1
+Axiom neq_2_0 : 2 <> 0.
+
+Lemma a_upper_bound_1
   : forall n : nat, 2/2^(S n) = 1/2^n.
+Proof.
+  intro n.
+  simpl.
+  unfold Rdiv.
+  rewrite (Rinv_mult_distr 2 (2^n) neq_2_0 (pow_nonzero 2 n neq_2_0)).
+  rewrite <- (Rmult_assoc 2 (/2) (/2^n)).
+  rewrite (Rinv_r_simpl_r 2 (/2^n) neq_2_0).
+  exact (eq_sym (Rmult_1_l (/2^n))).
+Qed.
 
 (*
   (approx n + 1/2^n)^2 <= (approx (S n) + 2/2^(S n))^2
