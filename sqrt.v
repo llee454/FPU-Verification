@@ -382,6 +382,7 @@ Axiom neq_2_0 : 2 <> 0.
 Axiom le_1_2 : 1 <= 2.
 Axiom le_0_2 : 0 <= 2.
 Axiom eq_2_2_4 : 2 * 2 = 4.
+Axiom lt_0_4 : 0 < 4.
 
 Lemma a_upper_bound_1
   : forall n : nat, 2/2^(S n) = 1/2^n.
@@ -598,18 +599,16 @@ Proof.
          || error n < X                              @X by <- Rplus_0_r ((4/2^n)*(approx n + 1/2^n))).
 Qed.
 
-(**
-  TODO: Verify.
-  verified using Maxima.
-
-  load(ineq);
-  assume(approx(n)<sqrt(2));
-  assume(0<n);
-  is((approx(n)+1/2^n)<(sqrt(2)+1/2^n));
-*)
-Conjecture rem_register_even_exp_0
+Lemma rem_register_even_exp_0
   :  forall n : nat, (4/2^n)*(approx n + 1/2^n) < (4/2^n)*(sqrt 2 + 1/2^n).
-
+Proof.
+  intro n.
+  apply (Rmult_lt_compat_l (4/2^n) (approx n + 1/2^n) (sqrt 2 + 1/2^n)).
+  + unfold Rdiv.
+    apply (Rlt_mult_inv_pos 4 (2^n) lt_0_4 (pow_lt 2 n Rlt_0_2)).
+  + apply (Rplus_lt_compat_r (1/2^n) (approx n) (sqrt 2) (approx_upper_bound n)).
+Qed.
+    
 (** TODO: Verify. 
   Verified using maxima.
   Is equivalent to:
