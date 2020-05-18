@@ -9,20 +9,21 @@
 
 Require Import base.
 Require Import Reals.
-Require Import Fourier.
+Require Import micromega.Lra.
 
 Open Scope R_scope.
 
-Axiom neq_2_0 : 2 <> 0.
-Axiom le_1_2 : 1 <= 2.
-Axiom le_0_2 : 0 <= 2.
-Axiom lt_0_2 : 0 < 2.
-Axiom eq_2_2_4 : 2 * 2 = 4.
-Axiom lt_0_4 : 0 < 4.
-Axiom div_eq_4_2 : 4 / 2 = 2.
-Axiom div_eq_8_2 : 8 / 2 = 4.
 Axiom lt_sqrt_div_3_2 : sqrt 2 < 3 / 2.
-Axiom eq_3_1_4 : 3 + 1 = 4.
+
+Lemma neq_2_0 : 2 <> 0. Proof. lra. Qed.
+Lemma le_1_2 : 1 <= 2. Proof. lra. Qed.
+Lemma le_0_2 : 0 <= 2. Proof. lra. Qed.
+Lemma lt_0_2 : 0 < 2. Proof. lra. Qed.
+Lemma eq_2_2_4 : 2 * 2 = 4. Proof. lra. Qed.
+Lemma lt_0_4 : 0 < 4. Proof. lra. Qed.
+Lemma div_eq_4_2 : 4 / 2 = 2. Proof. lra. Qed.
+Lemma div_eq_8_2 : 8 / 2 = 4. Proof. lra. Qed.
+Lemma eq_3_1_4 : 3 + 1 = 4. Proof. lra. Qed.
 
 Lemma neq_inv_2_0 : 0 <= /2.
 Proof.
@@ -478,7 +479,7 @@ Proof.
     (nat_ind _
       ((Rlt_trans a 2 4
         a_upper_bound
-        (ltac:(fourier)))
+        (ltac:(lra)))
         || a < X @X by (ltac:(field) : (0 + 2/2^0)^2 = 4)
         || a < (X + 2/2^0)^2 @X by approx_0)
       (fun n (H : a < (approx n + 2/2^n)^2)
@@ -553,7 +554,7 @@ Proof.
         (error 0) 2 4
         (a_upper_bound
           || X < 2 @X by error_0)
-        (ltac:(fourier) : 2 < 4))
+        (ltac:(lra) : 2 < 4))
       (fun n (H : error n < 4)
         => Rlt_le_trans
              (error (S n))
@@ -708,7 +709,7 @@ Proof.
         4
         (8/2^0)
         (error_upper_bound_const 0)
-        ((ltac:(fourier) : 4 < 8)
+        ((ltac:(lra) : 4 < 8)
           || 4 < X @X by (ltac:(field) : 8/2^0 = 8)))
       (fun n (H : error n < 8/2^n)
         => Rlt_trans
