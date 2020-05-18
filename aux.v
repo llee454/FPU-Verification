@@ -1,4 +1,5 @@
 (* A collection of auxiliary results about reals. *)
+Require Import base.
 Require Import Reals.
 Require Import micromega.Lra.
 
@@ -61,6 +62,25 @@ Proof.
   simpl.
   rewrite (Rmult_1_r n).
   reflexivity.
+Qed.
+
+Lemma sqr_expand : forall a b : R, (a + b)^2 = a^2 + b * (2 * a + b).
+Proof.
+  exact
+    (fun a b =>
+      eq_refl ((a + b)^2)
+      || _ = (a + b) * X @X by <- Rmult_1_r (a + b)
+      || _ = X @X by <- Rmult_plus_distr_r a b (a + b)
+      || _ = X + _ @X by <- Rmult_plus_distr_l a a b
+      || _ = X + _ + _ @X by pow2 a
+      || _ = _ + _ + X @X by <- Rmult_plus_distr_l b a b
+      || _ = X @X by <- Rplus_assoc (a^2) (a * b) (b * a + b * b)
+      || _ = _ + X @X by Rplus_assoc (a * b) (b * a) (b * b)
+      || _ = _ + (_ + X + _) @X by Rmult_comm a b
+      || _ = _ + (X + _) @X by double (a * b)
+      || _ = _ + (X + _) @X by Rmult_assoc 2 a b
+      || _ = _ + X @X by Rmult_plus_distr_r (2 * a) b b
+      || _ = _ + X @X by <- Rmult_comm (2 * a + b) b).
 Qed.
 
 Close Scope R_scope.

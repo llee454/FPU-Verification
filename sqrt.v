@@ -15,6 +15,7 @@ Require Import micromega.Lra.
 Open Scope R_scope.
 
 Axiom lt_sqrt_div_3_2 : sqrt 2 < 3 / 2.
+
 (**
   Represents the mantissa of the number that we
   are computing the square root of.
@@ -149,25 +150,6 @@ Qed.
 *)
 Axiom bn : forall n : nat, (approx n + 1/2^n)^2 > a <-> b n = 0.
 
-Lemma sqr_expand : forall a b : R, (a + b)^2 = a^2 + b * (2 * a + b).
-Proof.
-  exact
-    (fun a b =>
-      eq_refl ((a + b)^2)
-      || _ = (a + b) * X @X by <- Rmult_1_r (a + b)
-      || _ = X @X by <- Rmult_plus_distr_r a b (a + b)
-      || _ = X + _ @X by <- Rmult_plus_distr_l a a b
-      || _ = X + _ + _ @X by pow2 a
-      || _ = _ + _ + X @X by <- Rmult_plus_distr_l b a b
-      || _ = X @X by <- Rplus_assoc (a^2) (a * b) (b * a + b * b)
-      || _ = _ + X @X by Rplus_assoc (a * b) (b * a) (b * b)
-      || _ = _ + (_ + X + _) @X by Rmult_comm a b
-      || _ = _ + (X + _) @X by double (a * b)
-      || _ = _ + (X + _) @X by Rmult_assoc 2 a b
-      || _ = _ + X @X by Rmult_plus_distr_r (2 * a) b b
-      || _ = _ + X @X by <- Rmult_comm (2 * a + b) b).
-Qed.
-
 (*
   Asserts bounds for [error] and [approx] based
   on the value of a given bit.
@@ -297,8 +279,6 @@ Proof.
            || sqrt (a - error n) = X @X by <- sqrt_pow2 (approx n) (approx_is_positive n)).
 Qed.
 
-(**
-*)
 Lemma approx_sqr_is_positive_alt
   :  forall n : nat, 0 <= a - error n.
 Proof.
