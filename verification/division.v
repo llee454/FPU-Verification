@@ -3,19 +3,6 @@
   Hausner's implementation if large enough to store any intermediate
   value that may result while computing the quotient of two
   floating point binary numbers.
-
-  Coq is ill-suited to algebraic manipulations. Whenever, we have
-  relied on an algebraic transformation that we could not verify simply
-  using Coq, we have placed the associated equation in a conjecture
-  and verified it using Maxima - an open source CAS similar to
-  Maple and Mathematica.  Maxima can solve simple equations and
-  inequalities.
-
-  Whenever we have marked a conjecture as "verified"
-  using Maxima, we have used Maxima to prove that the equation or
-  inequality holds. On the other hand, whenever we have marked a
-  conjecture as "tested" using Maxima, we have verified that it
-  holds over a range of numerical examples.
 *)
 
 Require Import base.

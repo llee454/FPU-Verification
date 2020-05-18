@@ -1,0 +1,6 @@
+-R . FPUVerification
+./base.v
+./aux.v
+./sqrt_even.v
+./sqrt_odd.v
+./division.v

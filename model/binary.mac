@@ -155,7 +155,7 @@ divSub (n, x, y)
   := divSubAux (n, x, y, encodeR (decodeR (x)));
 
 
-divMuraliAux (n, i, x, y, q, r)
+divModelAux (n, i, x, y, q, r)
   := if i = 0
        then [q, r]
        else block ([z],
@@ -163,15 +163,15 @@ divMuraliAux (n, i, x, y, q, r)
            then block (
              r : encodeA (n, decodeA (r) - (2 * decodeA (x)/2^(n - i))),
              q : encodeA (n, decodeA (q) + (1/2^(n - 1)))),
-         divMuraliAux (n, i - 1, x, y, q, r));
+         divModelAux (n, i - 1, x, y, q, r));
 
 /*
 */
-divMurali (n, x, y)
+divModel (n, x, y)
   := block ([q, r],
        q : encodeA (n, 0),
        r : encodeA (n, 2 * decodeA (y)),
-       divMuraliAux (n, n, x, y, q, r));
+       divModelAux (n, n, x, y, q, r));
 
 
 /*

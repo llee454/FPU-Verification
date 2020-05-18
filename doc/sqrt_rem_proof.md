@@ -11,12 +11,12 @@ Consequently, we distinguish between two cases: when exponent is an even number 
 
 We use a normalized representation where mantissa always has the form 1.bbb... where the b's denote arbitrary bits. We exclude that case where the number being rooted is 0.
 
-Murali's Algorithm
-------------------
+Our algorithm
+-------------
 
-Murali's algorithm essentially generates an approximation value for the square root of mantissa, denoted `a`, by iteratively adding bits to the end of an approximation, denoted `approx`. In each iteration, we check to see whether or not we can append a 1 to the current approximation. If we can, we append a 1 and continue. Otherwise we append a 0 and continue.
+Our algorithm essentially generates an approximation value for the square root of mantissa, denoted `a`, by iteratively adding bits to the end of an approximation, denoted `approx`. In each iteration, we check to see whether or not we can append a 1 to the current approximation. If we can, we append a 1 and continue. Otherwise we append a 0 and continue.
 
-Murali's algorithm can be summarized by the following recurrence equations:
+Our algorithm can be summarized by the following recurrence equations:
 
 ```
 a = approx (n)^2 + error (n)

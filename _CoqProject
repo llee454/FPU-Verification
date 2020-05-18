@@ -1,4 +1,0 @@
--R . FPUVerification
-./base.v
-./aux.v
-./sqrt.v
