@@ -13,6 +13,66 @@ Require Import Fourier.
 
 Open Scope R_scope.
 
+Axiom neq_2_0 : 2 <> 0.
+Axiom le_1_2 : 1 <= 2.
+Axiom le_0_2 : 0 <= 2.
+Axiom lt_0_2 : 0 < 2.
+Axiom eq_2_2_4 : 2 * 2 = 4.
+Axiom lt_0_4 : 0 < 4.
+Axiom div_eq_4_2 : 4 / 2 = 2.
+Axiom div_eq_8_2 : 8 / 2 = 4.
+Axiom lt_sqrt_div_3_2 : sqrt 2 < 3 / 2.
+Axiom eq_3_1_4 : 3 + 1 = 4.
+
+Lemma neq_inv_2_0 : 0 <= /2.
+Proof.
+  apply (Rlt_le 0 (/2)).
+  exact (pos_half_prf).
+Qed.
+
+Lemma le_eq : forall x y z : R, 0 <= x -> x + y = z -> y <= z.
+Proof.
+  intros x y z Hx H.
+  rewrite <- H.
+  rewrite <- (Rplus_0_l y) at 1.
+  apply (Rplus_le_compat_r y 0 x Hx).
+Qed.
+
+Lemma le_eq_comm : forall x y z : R, 0 <= y -> x + y = z -> x <= z.
+Proof.
+  intros x y z Hy H.
+  rewrite (Rplus_comm x y) in H.
+  exact (le_eq y x z Hy H).
+Qed.
+
+Lemma Rle_minus_0 : forall x : R, 0 <= x -> - x <= 0.
+Proof.
+  intros x H.
+  apply (le_eq x (- x) 0 H (Rplus_opp_r x)).
+Qed.
+
+Lemma Rle_inv_2n : forall n : nat, 0 <= /2^n.
+Proof.
+  intro n.
+  rewrite <- (Rmult_1_l (/2^n)).
+  exact (Rle_mult_inv_pos 1 (2^n) Rle_0_1 (pow_lt 2 n Rlt_0_2)).
+Qed.
+
+Lemma Rlt_inv_2n : forall n : nat, 0 < /2^n.
+Proof.
+  intro n.
+  rewrite <- (Rmult_1_l (/2^n)).
+  exact (Rlt_mult_inv_pos 1 (2^n) Rlt_0_1 (pow_lt 2 n Rlt_0_2)).
+Qed.
+
+Lemma pow2 : forall n : R, n^2 = n * n.
+Proof.
+  exact
+    (fun n =>
+      eq_refl (n^2)
+      || n^2 = n * X @X by <- Rmult_1_r n).
+Qed.
+
 (**
   Represents the mantissa of the number that we
   are computing the square root of.
@@ -86,12 +146,14 @@ Axiom spec : forall n : nat, a = (approx n)^2 + error n.
 *)
 Lemma error_0
   :  error 0 = a.
-Proof
-  eq_sym
-    (spec 0
-      || a = (X)^2 + error 0 @X by <- approx_0
-      || a = X + error 0 @X by <- Rmult_0_l (0 * 1)
-      || a = X @X by <- Rplus_0_l (error 0)).
+Proof.
+  exact
+    (eq_sym
+      (spec 0
+        || a = (X)^2 + error 0 @X by <- approx_0
+        || a = X + error 0 @X by <- Rmult_0_l (0 * 1)
+        || a = X @X by <- Rplus_0_l (error 0))).
+Qed.
  
 (**
   Represents [error] in terms of [a] and
@@ -99,20 +161,16 @@ Proof
 *)
 Lemma error_n 
   :  forall n : nat, a - (approx n)^2 = error n.
-Proof
-  fun n
-    => Rplus_eq_compat_r (- (approx n)^2) a ((approx n)^2 + (error n)) (spec n)
-         || a - (approx n)^2 = X                @X by <- Rplus_assoc ((approx n)^2) (error n) (- (approx n)^2)
-         || a - (approx n)^2 = (approx n)^2 + X @X by <- Rplus_comm (error n) (- (approx n)^2)
-         || a - (approx n)^2 = X                @X by Rplus_assoc ((approx n)^2) (- (approx n)^2) (error n)
-         || a - (approx n)^2 = X + error n      @X by <- Rplus_opp_r ((approx n)^2)
-         || a - (approx n)^2 = X                @X by <- Rplus_0_l (error n).
-
-Lemma pow2 : forall n : R, n^2 = n * n.
-Proof
-  fun n =>
-    eq_refl (n^2)
-    || n^2 = n * X @X by <- Rmult_1_r n.
+Proof.
+  exact
+    (fun n
+      => Rplus_eq_compat_r (- (approx n)^2) a ((approx n)^2 + (error n)) (spec n)
+           || a - (approx n)^2 = X                @X by <- Rplus_assoc ((approx n)^2) (error n) (- (approx n)^2)
+           || a - (approx n)^2 = (approx n)^2 + X @X by <- Rplus_comm (error n) (- (approx n)^2)
+           || a - (approx n)^2 = X                @X by Rplus_assoc ((approx n)^2) (- (approx n)^2) (error n)
+           || a - (approx n)^2 = X + error n      @X by <- Rplus_opp_r ((approx n)^2)
+           || a - (approx n)^2 = X                @X by <- Rplus_0_l (error n)).
+Qed.
 
 (**
   Provides an algebraic expansion for [error].
@@ -308,41 +366,6 @@ Proof.
            || 0 <= X @X by approx_n_sqr n).
 Qed.
 
-Lemma le_eq : forall x y z : R, 0 <= x -> x + y = z -> y <= z.
-Proof.
-  intros x y z Hx H.
-  rewrite <- H.
-  rewrite <- (Rplus_0_l y) at 1.
-  apply (Rplus_le_compat_r y 0 x Hx).
-Qed.
-
-Lemma le_eq_comm : forall x y z : R, 0 <= y -> x + y = z -> x <= z.
-Proof.
-  intros x y z Hy H.
-  rewrite (Rplus_comm x y) in H.
-  exact (le_eq y x z Hy H).
-Qed.
-
-Lemma Rle_minus_0 : forall x : R, 0 <= x -> - x <= 0.
-Proof.
-  intros x H.
-  apply (le_eq x (- x) 0 H (Rplus_opp_r x)).
-Qed.
-
-Lemma Rle_inv_2n : forall n : nat, 0 <= /2^n.
-Proof.
-  intro n.
-  rewrite <- (Rmult_1_l (/2^n)).
-  exact (Rle_mult_inv_pos 1 (2^n) Rle_0_1 (pow_lt 2 n Rlt_0_2)).
-Qed.
-
-Lemma Rlt_inv_2n : forall n : nat, 0 < /2^n.
-Proof.
-  intro n.
-  rewrite <- (Rmult_1_l (/2^n)).
-  exact (Rlt_mult_inv_pos 1 (2^n) Rlt_0_1 (pow_lt 2 n Rlt_0_2)).
-Qed.
-
 Lemma approx_sqr_is_positive : forall n : nat, 0 <= (approx n)^2.
 Proof.
   intro n.
@@ -385,23 +408,6 @@ Proof.
   reflexivity.
 Qed.
 
-Axiom neq_2_0 : 2 <> 0.
-Axiom le_1_2 : 1 <= 2.
-Axiom le_0_2 : 0 <= 2.
-Axiom lt_0_2 : 0 < 2.
-Axiom eq_2_2_4 : 2 * 2 = 4.
-Axiom lt_0_4 : 0 < 4.
-Axiom div_eq_4_2 : 4 / 2 = 2.
-Axiom div_eq_8_2 : 8 / 2 = 4.
-Axiom lt_sqrt_div_3_2 : sqrt 2 < 3 / 2.
-Axiom eq_3_1_4 : 3 + 1 = 4.
-
-Lemma neq_inv_2_0 : 0 <= /2.
-Proof.
-  apply (Rlt_le 0 (/2)).
-  exact (pos_half_prf).
-Qed.
-
 Lemma a_upper_bound_1
   : forall n : nat, 2/2^(S n) = 1/2^n.
 Proof.
@@ -441,13 +447,6 @@ Qed.
   b n = 1
                        <= (approx n + 1/2^n + 1/2^n)^2
                        trivial 
-
-  Verified using Maxima
-  load(ineq);
-  assume(0<approx(n));
-  assume(0<approx(n+1));
-  assume(approx(n)<approx(n+1));
-  is((approx(n)+1/2^n)^2<=(approx(n+1)+2/2^(n+1))^2);
 *)
 Lemma a_upper_bound_2
   : forall n : nat, (approx n + 1/2^n)^2 <= (approx (S n) + 2/2^(S n))^2.
@@ -472,8 +471,6 @@ Proof.
       * exact (le_1_2).
 Qed.
 
-(**
-*)
 Theorem a_upper_bound_approx
   :  forall n : nat, a < (approx n + 2/2^n)^2.
 Proof.
