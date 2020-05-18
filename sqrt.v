@@ -329,11 +329,18 @@ Proof.
   apply (le_eq x (- x) 0 H (Rplus_opp_r x)).
 Qed.
 
-Lemma inv_2n : forall n : nat, 0 <= /2^n.
+Lemma Rle_inv_2n : forall n : nat, 0 <= /2^n.
 Proof.
   intro n.
   rewrite <- (Rmult_1_l (/2^n)).
   exact (Rle_mult_inv_pos 1 (2^n) Rle_0_1 (pow_lt 2 n Rlt_0_2)).
+Qed.
+
+Lemma Rlt_inv_2n : forall n : nat, 0 < /2^n.
+Proof.
+  intro n.
+  rewrite <- (Rmult_1_l (/2^n)).
+  exact (Rlt_mult_inv_pos 1 (2^n) Rlt_0_1 (pow_lt 2 n Rlt_0_2)).
 Qed.
 
 Lemma approx_sqr_is_positive : forall n : nat, 0 <= (approx n)^2.
@@ -381,8 +388,19 @@ Qed.
 Axiom neq_2_0 : 2 <> 0.
 Axiom le_1_2 : 1 <= 2.
 Axiom le_0_2 : 0 <= 2.
+Axiom lt_0_2 : 0 < 2.
 Axiom eq_2_2_4 : 2 * 2 = 4.
 Axiom lt_0_4 : 0 < 4.
+Axiom div_eq_4_2 : 4 / 2 = 2.
+Axiom div_eq_8_2 : 8 / 2 = 4.
+Axiom lt_sqrt_div_3_2 : sqrt 2 < 3 / 2.
+Axiom eq_3_1_4 : 3 + 1 = 4.
+
+Lemma neq_inv_2_0 : 0 <= /2.
+Proof.
+  apply (Rlt_le 0 (/2)).
+  exact (pos_half_prf).
+Qed.
 
 Lemma a_upper_bound_1
   : forall n : nat, 2/2^(S n) = 1/2^n.
@@ -523,8 +541,8 @@ Proof.
     rewrite (Rmult_0_l (2 * approx n + 0)).
     exact (Rle_refl 0).
   + rewrite (Rmult_1_l (/2^n)).
-    apply (Rmult_le_pos (/2^n) (2 * approx n + /2^n) (inv_2n n)).
-    refine (Rplus_le_le_0_compat (2 * approx n) (/2^n) _ (inv_2n n)).
+    apply (Rmult_le_pos (/2^n) (2 * approx n + /2^n) (Rle_inv_2n n)).
+    refine (Rplus_le_le_0_compat (2 * approx n) (/2^n) _ (Rle_inv_2n n)).
     exact (Rmult_le_pos 2 (approx n) le_0_2 (approx_is_positive n)).
 Qed.
 
@@ -609,8 +627,8 @@ Proof.
   + apply (Rplus_lt_compat_r (1/2^n) (approx n) (sqrt 2) (approx_upper_bound n)).
 Qed.
     
-(** TODO: Verify. 
-  Verified using maxima.
+
+(**
   Is equivalent to:
   1/2^(n+1) + sqrt(2) < 2
   1/2^(n+1) + sqrt(2) < 1/2^(n+1) + 1.5 <= 2
@@ -618,9 +636,65 @@ Qed.
                         1/2^(n+1)       <= 1/2
   
 *)
-Conjecture rem_register_even_exp_1
+Lemma rem_register_even_exp_1
   :  forall n : nat, (4/2^(S n))*(sqrt 2 + 1/2^(S n)) < 8/2^(S n).
-
+Proof.
+  intro n.
+  unfold Rdiv.
+  simpl.
+  rewrite (Rinv_mult_distr 2 (2^n) neq_2_0 (pow_nonzero 2 n neq_2_0)).
+  rewrite <- (Rmult_assoc 4 (/2) (/2^n)). fold (Rdiv 4 2). rewrite div_eq_4_2.
+  rewrite <- (Rmult_assoc 8 (/2) (/2^n)). fold (Rdiv 8 2). rewrite div_eq_8_2.
+  rewrite (Rmult_assoc 2 (/2^n) (sqrt 2 + 1 * (/2 * /2^n))).
+  rewrite (Rmult_comm (/2^n) (sqrt 2 + 1 * (/2 * /2^n))).
+  rewrite <- (Rmult_assoc 2 (sqrt 2 + 1 * (/2 * /2^n)) (/2^n)).
+  apply (Rmult_lt_compat_r (/2^n) (2 * (sqrt 2 + 1 * (/2 * /2^n))) 4).
+  + exact (Rlt_inv_2n n).
+  + rewrite <- eq_2_2_4.
+    apply (Rmult_lt_compat_l 2 (sqrt 2 + 1 * (/2 * /2^n)) 2).
+    - exact lt_0_2.
+    - refine
+        (Rlt_le_trans
+          (sqrt 2 + 1 * (/2 * /2^n))
+          (3/2 + 1 * (/2 * /2^n))
+          2 _ _). 
+      * apply (Rplus_lt_compat_r (1 * (/2 * /2^n))).
+        exact (lt_sqrt_div_3_2).
+      * rewrite (Rmult_1_l (/2 * /2^n)).
+        rewrite <- (Rmult_1_l (/2)).
+        unfold Rdiv.
+        induction n as [m|m].
+        ** rewrite (pow_O 2).
+           rewrite Rinv_1.
+           rewrite (Rmult_1_r (1 * /2)).
+           rewrite <- (Rmult_plus_distr_r 3 1 (/2)).
+           rewrite eq_3_1_4.
+           fold (Rdiv 4 2).
+           rewrite div_eq_4_2.
+           exact (Rle_refl 2).
+        ** simpl.
+           apply
+             (Rle_trans
+               (3 * / 2 + 1 * / 2 * / (2 * 2 ^ m))
+               (3 * / 2 + 1 * / 2 * / 2 ^ m)
+               2).
+           *** apply
+                 (Rplus_le_compat_l
+                   (3*/2)
+                   (1 * /2 * /(2 * 2^m))
+                   (1 * /2 * /2^m)).
+               rewrite (Rmult_1_l (/2)).
+               apply (Rmult_le_compat_l (/2) (/(2 * 2 ^ m)) (/2^m)).
+               apply (neq_inv_2_0).
+               rewrite (Rinv_mult_distr 2 (2^m) neq_2_0 (pow_nonzero 2 m neq_2_0)).
+               rewrite <- (Rmult_1_l (/2^m)) at 2.
+               refine (Rmult_le_compat_r (/2^m) (/2) 1 (Rle_inv_2n m) _).
+               apply (Rmult_le_reg_l 2 (/2) 1).
+               **** exact lt_0_2.
+               **** rewrite (Rinv_r 2); [rewrite (Rmult_1_r 2); exact le_1_2|exact neq_2_0].
+           *** assumption.
+Qed.
+  
 (**
   Proves that the width used to store
   intermediate error values is large enough to
@@ -629,24 +703,26 @@ Conjecture rem_register_even_exp_1
 *)
 Theorem rem_register_even_exp
   :  forall n : nat, error n < 8/2^n.
-Proof
-  nat_ind _
-    (Rlt_trans
-      (error 0)
-      4
-      (8/2^0)
-      (error_upper_bound_const 0)
-      ((ltac:(fourier) : 4 < 8)
-        || 4 < X @X by (ltac:(field) : 8/2^0 = 8)))
-    (fun n (H : error n < 8/2^n)
-      => Rlt_trans
-           (error (S n))
-           ((4/2^(S n))*(approx (S n) + 1/2^(S n)))
-           (8/2^(S n))
-           (error_upper_bound_approx (S n))
-           (Rlt_trans
+Proof.
+  exact
+    (nat_ind _
+      (Rlt_trans
+        (error 0)
+        4
+        (8/2^0)
+        (error_upper_bound_const 0)
+        ((ltac:(fourier) : 4 < 8)
+          || 4 < X @X by (ltac:(field) : 8/2^0 = 8)))
+      (fun n (H : error n < 8/2^n)
+        => Rlt_trans
+             (error (S n))
              ((4/2^(S n))*(approx (S n) + 1/2^(S n)))
-             ((4/2^(S n))*(sqrt 2 + 1/2^(S n)))
              (8/2^(S n))
-             (rem_register_even_exp_0 (S n))
-             (rem_register_even_exp_1 n))).
+             (error_upper_bound_approx (S n))
+             (Rlt_trans
+               ((4/2^(S n))*(approx (S n) + 1/2^(S n)))
+               ((4/2^(S n))*(sqrt 2 + 1/2^(S n)))
+               (8/2^(S n))
+               (rem_register_even_exp_0 (S n))
+               (rem_register_even_exp_1 n)))).
+Qed.
