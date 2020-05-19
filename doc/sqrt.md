@@ -5,27 +5,36 @@ Square Root Algorithms
 Binary Number Representation
 ----------------------------
 
-The standard recursive binary square root algorithm accepts a binary number written in decimal notation.
+Hauser's binary square root algorithm accepts a binary number written in decimal notation.
 
-We require that the number have the form: `x = [a0 a1 ... an . b0 b1 .. bm]`, where `x = a0 * 2^n + a1 * 2^n-1 + ... + an * 2^0 + b0 * 2^-1 + b1 * 2^-2 + ... + bm * 2^-m`.
+It requires that the number have the form: `x = [a0 a1 ... an . b0 b1 .. bm]`, where `x = a0 * 2^n + a1 * 2^n-1 + ... + an * 2^0 + b0 * 2^-1 + b1 * 2^-2 + ... + bm * 2^-m`.
 
-We also require that the number of bits in front of the decimal point, `n`, and the number of bits after the decimal point, `m`, be even numbers.
+For example `x = 10.011 = 1*2^1 + 0*2^0 + 0*2^-1 + 1*2^-2 + 1*2^3`.
 
-If `x` can be written such that `n` or `m` is odd, we simply prepend or append a 0.
+We pass the `x` to Hauser's algorithm using scientific notation. That is, we express `x` using two numbers, a mantissa and an exponent. The example above would be expressed as: `1.0011 * 2^-1`.
 
-For example `x = 110.011 = 1*2^2 + 1*2^1 + 0*2^0 + 0*2^-1 + 1*2^-2 + 1*2^3`.
+When we compute the square root of `x`, we get an expression like `sqrt (mantissa * 2^exp) = sqrt (mantissa) * sqrt (2^exp) = sqrt (mantissa) * 2^(exp / 2)`, which means that we perform two operations: we compute the square root of the mantissa and we divide the exponent in half. 
 
-To use the standard algorithm, we need to prepend and append 0's and rewrite `x` as `0110.0110`.
+If the exponent is even, we can compute the new exponent by simply shifting the binary string that represents the exponent 1 bit to the right.
 
-We need the number of bits before and after the decimal point to be even because the standard algorithm recurses over `x` processing bits in pairs.
+If the exponent is odd however, we cannot do this without, effectively rounding the result of the division.
 
+To circumvent this problem, we shift the mantissa by left by 1 bit if the exponent is odd. This is equivalent to adding 1 to the exponent. The resulting number has the form `1b.bbb * 2^e` where e is now an even exponent.
+
+Once we perform this transformation, we can compute the new exponent by simply right shifting the exponent.
+
+Now, whenever we perform this transformation, the mantissa always has the form `1b.bbb` - i.e. its equivalent to `2 * a` where `a` was the original mantissa for `x`.
+
+To compute the new exponent, we simply shift the binary string that represents the exponent right by 1 bit. 
+
+To compute the new mantissa, we perform a recurisive algorithm in which we start with a bit string that is all 0s, and then iteratively try to set each successive bit to 1.
 
 The Rationale Behind the Standard Algorithm
 -------------------------------------------
 
-Given a binary number, `x`, the standard algorithm recursively computes an approximation, `approx`, while trying to minimize the error between `x` and `approx^2` with each iteration.
+Given a binary number, `x`, the algorithm recursively computes an approximation, `approx`, while trying to minimize the error between `x` and `approx^2` with each iteration.
 
-Symbolically, the standard algorithm computes a value, approx, where `x - approx^2 = error`, and tries to minimize error with each iteration.
+Symbolically, the algorithm computes a value, approx, where `x - approx^2 = error`, and tries to minimize error with each iteration.
 
 We recurse over `x`. At the beginning of each iteration, `n`, we draw the 2 most significant bits from `x` that we have not yet processed.
 
