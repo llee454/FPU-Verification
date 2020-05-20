@@ -35,8 +35,8 @@ allocated by Hauser's algorithm are sufficiently large to store
 all intermediate values computed during square root and division
 operations:
 
-1. Deep Specification
-   Directly model Hauser's Chisel algorithm.
+1. Specification
+   Model Hauser's Chisel algorithm.
 2. Abstract Model
    Identify a set of mathematical recurrence relations that model
    the variables used within Hauser's Chisel algorithm. We ensure
