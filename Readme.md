@@ -23,7 +23,7 @@ Organization
   Documentation explaining the models used to model Hauser's
   algorithm and informal correctness proffs.
 * models
-  "Deep Specification" models of Hausers algorithm written.
+  Models of Hausers algorithm.
 * verfication
   Formal proofs
 
