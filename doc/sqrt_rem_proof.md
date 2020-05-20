@@ -212,10 +212,10 @@ forall n : nat, error (n) < 4
 forall n : nat, error (n) < 4/2^n*(approx (n) + 1/2^n)
 ```
 
-also, we need an upper bound for `approx n`. The largest possible value for `approx n` is achieved by always append a 1 to our approximation.
+also, we need an upper bound for `approx n`. The largest possible value for `approx n` is achieved by always append a 1 to our approximation. But, no matter how many 1s we append we never exceed 2.
 
 ```
-approx n <= 1/2^n * (2^(n + 1) - 1)
+Axiom limit : forall n : nat, approx n + 1/2^n < 2.
 ```
 
 Now, as in the even exponents case, we proceed using direct calculation with two upper bounds.
@@ -224,12 +224,9 @@ Now, as in the even exponents case, we proceed using direct calculation with two
 error (n) < (4/2^n) * (approx n + 1/2^n)
 by error_upper_bound_approx
 
-error (n) < (4/2^n) * (1/2^n * (2^(n + 1) - 1) + 1/2^n)
+error n < (4/2^n)*(2 - 1/2^n + 1/2^n).
 subst approx_n_upper_bound
 
-error (n) < 4 * 1/2^n * 1/2^n * (2*2^n - 1 + 1)
-error (n) < 4 * 1/2^n * 1/2^n * 2 * 2^n
-error (n) < 4 * 1/2^n * 2
-error (n) < 8 * 1/2^n
-error (n) < 8/2^n
+error n < (4/2^n)*2
+error n < 8/2^n
 ```
