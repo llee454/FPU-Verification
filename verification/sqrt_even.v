@@ -645,3 +645,5 @@ Proof.
                (rem_register_even_exp_0 (S n))
                (rem_register_even_exp_1 n)))).
 Qed.
+
+Close Scope R_scope.

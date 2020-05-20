@@ -8,12 +8,30 @@ Open Scope R_scope.
 Lemma neq_2_0 : 2 <> 0. Proof. lra. Qed.
 Lemma le_1_2 : 1 <= 2. Proof. lra. Qed.
 Lemma le_0_2 : 0 <= 2. Proof. lra. Qed.
+Lemma le_0_4 : 0 <= 4. Proof. lra. Qed.
 Lemma lt_0_2 : 0 < 2. Proof. lra. Qed.
 Lemma eq_2_2_4 : 2 * 2 = 4. Proof. lra. Qed.
 Lemma lt_0_4 : 0 < 4. Proof. lra. Qed.
 Lemma div_eq_4_2 : 4 / 2 = 2. Proof. lra. Qed.
 Lemma div_eq_8_2 : 8 / 2 = 4. Proof. lra. Qed.
 Lemma eq_3_1_4 : 3 + 1 = 4. Proof. lra. Qed.
+Lemma Rmult_4_2 : 4 * 2 = 8. Proof. lra. Qed.
+
+Lemma Rminus_2_1 : 2 + - (1) = 1. Proof. lra. Qed.
+
+Lemma Rdiv_4_2 : forall n : nat, 4/2^n = 4 * /2^n.
+Proof.
+  intro n.
+  unfold Rdiv.
+  reflexivity.
+Qed.
+
+Lemma Rdiv_expand : forall n : nat, 1/2^n = 1 * /2^n.
+Proof.
+  intro n.
+  unfold Rdiv.
+  reflexivity.
+Qed.
 
 Lemma neq_inv_2_0 : 0 <= /2.
 Proof.
