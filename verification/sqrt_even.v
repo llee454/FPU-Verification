@@ -226,29 +226,16 @@ Qed.
 Lemma approx_is_positive
   :  forall n : nat, 0 <= approx n.
 Proof.
-  exact
-    (nat_ind _
-      (Req_le_sym 0 (approx 0) approx_0)
-      (fun n (H : 0 <= approx n)
-        => Rle_trans 0
-             (approx n + 0)
-             (approx n + (b n)/(2^n))
-             (H || 0 <= X @X by Rplus_0_r (approx n))
-             (Rplus_le_compat_l
-               (approx n)
-               0
-               ((b n)/(2^n))
-               ((Rmult_le_compat_r
-                 (/(2^n))
-                 0
-                 (b n)
-                 (Rlt_le 0 (/(2^n))
-                   (Rinv_0_lt_compat (2^n)
-                      (pow_lt 2 n Rlt_0_2)))
-                 (b_lower_bound n))
-                 || X <= (b n)/(2^n) @X by <- Rmult_0_l (/(2^n)))
-               )
-           || 0 <= X @X by (approx_Sn n))).
+  induction n as [|m H].
+  + exact (Req_le_sym 0 (approx 0) approx_0).
+  + rewrite (approx_Sn m).
+    apply (Rle_trans 0 (approx m + 0) (approx m + (b m)/(2^m))).
+    - rewrite (Rplus_0_r (approx m)); assumption.
+    - apply (Rplus_le_compat_l (approx m) 0 ((b m)/(2^m))).
+      rewrite <- (Rmult_0_l (/2^m)).
+      apply (Rmult_le_compat_r (/2^m) 0 (b m)).
+      * exact (Rlt_le 0 (/(2^m)) (Rinv_0_lt_compat (2^m) (pow_lt 2 m Rlt_0_2))).
+      * exact (b_lower_bound m).
 Qed.
 
 (**
