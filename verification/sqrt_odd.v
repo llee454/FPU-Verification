@@ -17,6 +17,13 @@ Open Scope R_scope.
 (**
   Represents the mantissa of the number that we
   are computing the square root of.
+
+  Note: in this development we are considering the case where the
+  exponent of the number is odd. To simplify our calculations, we
+  multiply the mantissa, [a], by 2 and subtract  1 from the exponent
+  to produce aneven exponent. Consequently, we compute the sqrt of
+  [2 a] not [a]. [approx] will represent our approximation for the
+  square root of [2 a].
 *)
 Parameter a : R.
 
@@ -45,13 +52,15 @@ Axiom b_is_bit : forall n : nat, {b n = 0}+{b n = 1}.
 
 (**
   Accepts a natural number, [n], and returns our
-  n-th approximation of the square root of [a].
+  n-th approximation of the square root of [2 a].
+
+  Note: see note for [a].
 *)
 Parameter approx : nat -> R.
 
 (**
   Asserts that our initial approximation of the
-  square root of [a] is 0.
+  square root of [2 a] is 0.
 *)
 Axiom approx_0 : approx 0 = 0.
 
@@ -64,7 +73,7 @@ Axiom approx_Sn : forall n : nat, approx (S n) = approx n + (b n)/(2^n).
 
 (**
   Accepts a natural number, [n], and returns
-  the difference between [a] and the square of
+  the difference between [2 a] and the square of
   our n-th approximation.
 *)
 Parameter error : nat -> R.
@@ -73,19 +82,81 @@ Parameter error : nat -> R.
 Axiom error_is_positive : forall n : nat, 0 <= error (n).
 
 (**
-  Asserts the relationship between [a], our
-  approximation for the square root of [a],
+  Asserts the relationship between [2 a], our
+  approximation for the square root of [2 a],
   and the discrepancy between the square of our
-  approximation and [a].
+  approximation and [2 a].
 *)
 Axiom spec : forall n : nat, 2*a = (approx n)^2 + error n.
 
 (*
-  Approx has the form 1.b0 b1 b2... which is
+  The upper bound for approx where we [append] a 1 bit every
+  iteration.
+*)
+Fixpoint approx_ub_strict (n : nat) : R :=
+  match n with
+  | 0 => 0
+  | S m => approx_ub_strict m + 1/(2^m)
+  end.
+
+(*
+  Prove that the upper bound for approx converges to 2, but is
+  always 2/2^n less than 2.
+*)
+Lemma approx_ub_strict_eqn : forall n : nat, approx_ub_strict n + 2/2^n = 2.
+Proof.
+  induction n as [|m Hm]; unfold approx_ub_strict.
+  + lra.
+  + fold (approx_ub_strict m).
+    rewrite Rplus_assoc.
+    unfold Rdiv.
+    unfold pow at 2.
+    fold pow.
+    rewrite (Rinv_mult_distr 2 (2^m) neq_2_0 (pow_nonzero 2 m neq_2_0)).
+    rewrite <- (Rmult_assoc 2 (/2) (/2^m)).
+    rewrite (Rinv_r 2 neq_2_0).
+    assert (2/2^m = 1 * /2^m + 1 * /2^m) as H.
+    - lra.
+    - rewrite <- H.
+      assumption.
+Qed.
+    
+(*
+  Verifies that approx_ub_strict is in fact an upper bound for
+  approx.
+*)
+Lemma approx_ub_strict_is_ub : forall n : nat, approx n <= approx_ub_strict n.
+Proof.
+  induction n as [|m Hm]; unfold approx_ub_strict.
+  + rewrite approx_0.
+    lra.
+  + rewrite approx_Sn.
+    fold (approx_ub_strict m).
+    destruct (b_is_bit m) as [Hb|Hb]; rewrite Hb.
+    - apply (Rplus_le_compat (approx m) (approx_ub_strict m) (0/2^m) (1/2^m)).
+      * assumption.
+      * unfold Rdiv.
+        rewrite (Rmult_0_l (/2^m)).
+        apply (Rle_mult_inv_pos 1 (2^m) (ltac:(lra) : 0 <= 1) (pow_lt 2 m lt_0_2)).
+    - apply (Rplus_le_compat_r (1/2^m) (approx m) (approx_ub_strict m)).
+      assumption.
+Qed.
+
+(*
+  Approx has the form b0.b1 b2... which is
   always less than 2 no matter how many bits
   you append.
 *)
-Axiom limit : forall n : nat, approx n + 1/2^n < 2.
+Lemma limit : forall n : nat, approx n + 1/2^n < 2.
+Proof.
+  intro n.
+  rewrite <- (approx_ub_strict_eqn n) at 2.
+  apply (Rplus_le_lt_compat (approx n) (approx_ub_strict n) (1/2^n) (2/2^n)).
+  + exact (approx_ub_strict_is_ub n).
+  + unfold Rdiv.
+    apply (Rmult_lt_compat_r (/2^n) 1 2 (Rlt_inv_2n n)).
+    lra.
+Qed.
 
 Lemma approx_ub : forall n : nat, approx n < 2 - 1/2^n.
 Proof.
@@ -110,8 +181,8 @@ Qed.
 
 (**
   Proves that the discrepancy between the square
-  of our initial approximation and [a] equals
-  [a].
+  of our initial approximation and [2 a] equals
+  [2 a].
 *)
 Lemma error_0
   :  error 0 = 2 * a.
@@ -166,7 +237,7 @@ Qed.
 (*
   In each iteration [n], we try to append a 1
   bit onto [approx]. If the result is larger than
-  [a], we append a 0 instead.
+  [2 a], we append a 0 instead.
 *)
 Axiom bn : forall n : nat, (approx n + 1/2^n)^2 > 2 * a <-> b n = 0.
 
