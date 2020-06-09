@@ -20,8 +20,8 @@ Open Scope R_scope.
 
   Note: in this development we are considering the case where the
   exponent of the number is odd. To simplify our calculations, we
-  multiply the mantissa, [a], by 2 and subtract  1 from the exponent
-  to produce aneven exponent. Consequently, we compute the sqrt of
+  multiply the mantissa, [a], by 2 and subtract 1 from the exponent
+  to produce an even exponent. Consequently, we compute the sqrt of
   [2 a] not [a]. [approx] will represent our approximation for the
   square root of [2 a].
 *)
