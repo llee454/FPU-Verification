@@ -4,7 +4,7 @@
   large enough to store any intermediate value
   that may result while computing the square
   root of a floating point binary number having
-  an even exponent.
+  an odd exponent.
 *)
 
 Require Import base.
