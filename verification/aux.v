@@ -101,4 +101,39 @@ Proof.
       || _ = _ + X @X by <- Rmult_comm (2 * a + b) b).
 Qed.
 
+Lemma eq_2_2n
+  : forall n : nat, 2/2^(S n) = 1/2^n.
+Proof.
+  intro n.
+  unfold Rdiv.
+  unfold pow.
+  fold pow.
+  rewrite (Rinv_mult_distr 2 (2^n) neq_2_0 (pow_nonzero 2 n neq_2_0)).
+  rewrite <- (Rmult_assoc 2 (/2) (/2^n)).
+  rewrite (Rinv_r 2 neq_2_0).
+  reflexivity.
+Qed.
+
+Lemma eq_1_2n
+  : forall n : nat, 1/2^n + 1/2^n = 2/2^n.
+Proof.
+  intro n.
+  unfold Rdiv.
+  lra.
+Qed.
+
+Lemma le_0_1_2n : forall n : nat, 0 <= 1/2^n.
+Proof.
+  intro n.
+  unfold Rdiv.
+  exact (Rle_mult_inv_pos 1 (2^n) ltac:(lra) (pow_lt 2 n Rlt_0_2)).
+Qed.
+
+Lemma lt_0_1_2n : forall n : nat, 0 < 1/2^n.
+Proof.
+  intro n.
+  unfold Rdiv.
+  exact (Rlt_mult_inv_pos 1 (2^n) ltac:(lra) (pow_lt 2 n Rlt_0_2)).
+Qed.
+
 Close Scope R_scope.
