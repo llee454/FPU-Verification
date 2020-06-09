@@ -345,74 +345,31 @@ Proof.
   exact (pow_nonzero 2 n neq_2_0).
 Qed.
 
-(*
-  Establishes an important upper bound on approx n.
+(* Proves that [approx] is monotonically increasing. *)
+Lemma approx_inc : forall n : nat, approx n <= approx (S n).
+Proof.
+  intro n.
+  rewrite (approx_Sn n).
+  destruct (b_is_bit n) as [Hb|Hb]; rewrite Hb.
+  + lra.
+  + rewrite <- (Rplus_0_r (approx n)) at 1.
+    apply (Rplus_le_compat_l (approx n) 0 (1/2^n)).
+    unfold Rdiv.
+    exact (Rle_mult_inv_pos 1 (2^n) ltac:(lra) (pow_lt 2 n lt_0_2)).
+Qed.
 
-  (approx n + 1/2^n)^2 <= (approx (S n) + 2/2^(S n))^2
-                       <= (approx (S n) + 1/2^n)^2
-                       <= (approx n + b n/2^n + 1/2^n)^2
-  b n = 0
-                       <= (approx n + 1/2^n)^2
-                       reflexivity
-  b n = 1
-                       <= (approx n + 1/2^n + 1/2^n)^2
-                       trivial 
-*)
-Theorem a_upper_bound_2
+Lemma a_upper_bound_2
   : forall n : nat, (approx n + 1/2^n)^2 <= (approx (S n) + 2/2^(S n))^2.
 Proof.
-  intro.
-  (rewrite (approx_Sn n)).
-  (induction (b_is_bit n)).
-   (rewrite a0).
-   (assert (0 / 2 ^ n = 0)).
-    field.
-    exact (pow_nonzero 2 n neq_2_0).
-    (rewrite H).
-    (rewrite a_upper_bound_1).
-    (rewrite (Rplus_assoc (approx n) 0 (1 / 2 ^ n))).
-    (rewrite (Rplus_0_l (1 / 2 ^ n))).
-    (apply (Req_le ((approx n + 1 / 2 ^ n) ^ 2))).
-    reflexivity.
-   (rewrite b0).
-   (simpl).
-   (rewrite (Rmult_1_r (approx n + 1 / 2 ^ n))).
-   (rewrite (Rmult_1_r (approx n + 1 / 2 ^ n + 2 / (2 * 2 ^ n)))).
-   (apply Rlt_le).
-   (assert (approx n + 1 / 2 ^ n < approx n + 1 / 2 ^ n + 2 / (2 * 2 ^ n))).
-    (rewrite (Rplus_assoc (approx n) (1 / 2 ^ n) (2 / (2 * 2 ^ n)))).
-    (apply
-      (Rplus_lt_compat_l (approx n) (1 / 2 ^ n) (1 / 2 ^ n + 2 / (2 * 2 ^ n)))).
-    (rewrite <- (Rplus_0_r (1 / 2 ^ n))  at 1).
-    (apply (Rplus_lt_compat_l (1 / 2 ^ n) 0 (2 / (2 * 2 ^ n)))).
-    (simpl).
-    (apply Rlt_mult_inv_pos).
-     lra.
-     (apply Rmult_lt_0_compat).
-      lra.
-      (apply pow_lt).
-      lra.
-    (assert (0 <= approx n + 1 / 2 ^ n)).
-     (apply Rplus_le_le_0_compat).
-      (apply (approx_is_positive n)).
-      (apply (Rle_mult_inv_pos 1 (2 ^ n))).
-       lra.
-       (apply (pow_lt 2 n)).
-       lra.
-     (assert (0 <= approx n + 1 / 2 ^ n + 2 / (2 * 2 ^ n))).
-      (apply Rplus_le_le_0_compat).
-       (apply H0).
-       (apply (Rle_mult_inv_pos 2 (2 * 2 ^ n))).
-        lra.
-        (apply Rmult_lt_0_compat).
-         lra.
-         (apply (pow_lt 2 n)).
-         lra.
-      (apply
-        (Rmult_le_0_lt_compat (approx n + 1 / 2 ^ n)
-           (approx n + 1 / 2 ^ n + 2 / (2 * 2 ^ n)) 
-           (approx n + 1 / 2 ^ n) (approx n + 1 / 2 ^ n + 2 / (2 * 2 ^ n)) H0
-           H0 H H)).
+  intro n.
+  apply (pow_incr (approx n + 1/2^n) (approx (S n) + 2/2^(S n)) 2).
+  split.
+  apply (Rplus_le_le_0_compat (approx n) (1/2^n) (approx_is_positive n)).
+  + unfold Rdiv.
+    exact (Rle_mult_inv_pos 1 (2^n) ltac:(lra) (pow_lt 2 n Rlt_0_2)).
+  + rewrite (a_upper_bound_1 n).
+    apply (Rplus_le_compat_r (1/2^n) (approx n) (approx (S n))).
+    exact (approx_inc n).
 Qed.
 
 (*

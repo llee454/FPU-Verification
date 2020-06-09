@@ -218,7 +218,7 @@ also, we need an upper bound for `approx n`. The largest possible value for `app
 Axiom limit : forall n : nat, approx n + 1/2^n < 2.
 ```
 
-Now, as in the even exponents case, we proceed using direct calculation with two upper bounds.
+Note: `limit` can be proved in a straightforward manner, but we omit this proof here. Now, as in the even exponents case, we proceed using direct calculation with two upper bounds.
 
 ```
 error (n) < (4/2^n) * (approx n + 1/2^n)
