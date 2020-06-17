@@ -136,4 +136,85 @@ Proof.
   exact (Rlt_mult_inv_pos 1 (2^n) ltac:(lra) (pow_lt 2 n Rlt_0_2)).
 Qed.
 
+Lemma ln_pow : forall (x : R), 0 < x -> forall (n : nat), ln (x^n) = (INR n)*(ln x).
+Proof.
+  intros x Hx.
+  induction n as [|m Hm].
+  + simpl.
+    rewrite ln_1.
+    exact (eq_sym (Rmult_0_l (ln x))).
+  + unfold pow.
+    fold pow.
+    rewrite (ln_mult x (x^m) Hx (pow_lt x m Hx)).
+    rewrite Hm.
+    rewrite <- (Rmult_1_l (ln x)) at 1.
+    rewrite <- (Rmult_plus_distr_r 1 (INR m) (ln x)).
+    rewrite (Rplus_comm 1 (INR m)).
+    destruct m as [m|m]; simpl.
+    - lra.
+    - reflexivity.
+Qed.
+
+Definition Rlog x y := (ln y)/(ln x).
+
+Definition Rlog2 x := Rlog 2 x.
+
+Infix "^R" := Rpower (at level 30, right associativity) : R_scope.
+
+Lemma ln_neq_0 : forall x : R, x <> 1 -> 0 < x -> ln x <> 0.
+Proof.
+  intros x Hneq_x_1 Hlt_0_x.
+  rewrite <- ln_1.
+  intro H.
+  assert (x = 1) as H0.
+  + exact (ln_inv x 1 Hlt_0_x (ltac:(lra) : 0 < 1) H).
+  + contradiction.
+Qed.
+
+Lemma exp_neq_0 : forall x : R, exp x <> 0.
+Proof.
+  intro x.
+  exact (not_eq_sym (Rlt_not_eq 0 (exp x) (exp_pos x))).
+Qed.
+
+Lemma Rpower_Rlog : forall x y : R, x <> 1 -> 0 < x -> 0 < y -> x ^R (Rlog x y) = y.
+Proof.
+  intros x y H_neq_x_1 H_lt_0_x H_lt_0_y.
+  unfold Rpower.
+  unfold Rlog.
+  unfold Rdiv.
+  rewrite (Rmult_assoc (ln y) (/ln x) (ln x)).
+  rewrite (Rinv_l (ln x) (ln_neq_0 x H_neq_x_1 H_lt_0_x)).
+  rewrite (Rmult_1_r (ln y)).
+  exact (exp_ln y H_lt_0_y).
+Qed.
+    
+Lemma ln_Rpower : forall x y : R, ln (x ^R y) = y * ln x.
+Proof.
+  intros x y.
+  unfold Rpower.
+  rewrite (ln_exp (y * ln x)).
+  reflexivity.
+Qed.
+
+Lemma Rlog_pow : forall (x : R) (n : nat), x <> 1 -> 0 < x -> Rlog x (x^n) = INR n.
+Proof.
+  intros x n H_neq_x_1 H_lt_0_x.
+  rewrite <- (Rpower_pow n x H_lt_0_x).
+  unfold Rpower.
+  unfold Rlog.
+  rewrite (ln_exp (INR n * ln x)).
+  unfold Rdiv.
+  rewrite (Rmult_assoc (INR n) (ln x) (/ln x)).
+  rewrite (Rinv_r (ln x) (ln_neq_0 x H_neq_x_1 H_lt_0_x)).
+  exact (Rmult_1_r (INR n)).
+Qed.
+
+Lemma Rpower_nonzero : forall (x : R) (n : nat), 0 < x -> x ^R INR n <> 0.
+Proof.
+  intros x n H.
+  rewrite (Rpower_pow n x H).
+  exact (pow_nonzero x n (not_eq_sym (Rlt_not_eq 0 x H))).
+Qed.
+
 Close Scope R_scope.

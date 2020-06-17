@@ -459,5 +459,54 @@ Proof.
       (2 - 1/2^n)
       (approx_ub n)).
 Qed.
- 
+
+Lemma is_correct_aux : forall n m : R, n <= m -> 8/(2 ^R m) <= 8/(2 ^R n).
+Proof.
+  intros n m Hlt_n_m.
+  unfold Rdiv.
+  apply (Rmult_le_compat_l 8 (/2 ^R m) (/2 ^R n) (ltac:(lra) : 0 <= 8)).
+  apply (Rle_Rinv (2 ^R n) (2 ^R m)); unfold Rpower.
+  + exact (exp_pos (n * ln 2)).
+  + exact (exp_pos (m * ln 2)).
+  + fold (Rpower 2 n).
+    fold (Rpower 2 m).
+    apply (Rle_Rpower 2 n m (ltac:(lra) : 1 <= 2) Hlt_n_m).
+Qed.
+
+(* TODO: replace with Un_cv approx (sqrt (2*a)). *)
+Theorem is_correct : forall eps : R, 0 < eps -> forall n : nat, INR 3 - Rlog2 eps <= INR n -> error n < eps.
+Proof.
+  intros eps Hlt_0_eps n Hlt_n_N.
+  apply (Rlt_le_trans (error n) (8/2^n) eps (rem_register_odd_exp n)).
+  apply (Rle_trans (8/2^n) (8/2 ^R (INR 3 - Rlog2 eps)) eps).
+  + rewrite <- (Rpower_pow n 2 lt_0_2).
+    exact (is_correct_aux (INR 3 - Rlog2 eps) (INR n) Hlt_n_N).
+  + unfold Rminus.
+    rewrite (Rpower_plus (INR 3) (- Rlog2 eps) 2).
+    unfold Rpower at 2.
+    unfold Rlog2.
+    unfold Rlog.
+    unfold Rdiv at 2.
+    rewrite <- (Ropp_mult_distr_l (ln eps * / ln 2) (ln 2)).
+    rewrite (Rmult_assoc (ln eps) (/ln 2) (ln 2)).
+    rewrite (Rinv_l (ln 2) (ln_neq_0 2 (ltac:(lra) : 2 <> 1) lt_0_2)).
+    rewrite (Rmult_1_r (ln eps)).
+    rewrite (exp_Ropp (ln eps)).
+    rewrite (exp_ln eps Hlt_0_eps).
+    unfold Rdiv.
+    rewrite (Rinv_mult_distr (2 ^R INR 3) (/eps) (Rpower_nonzero 2 3 lt_0_2)).
+    - assert (8 = 2 ^R (INR 3)) as Htemp.
+      * rewrite (Rpower_pow 3 2 lt_0_2).
+        lra.
+      * rewrite Htemp.
+        rewrite <- (Rmult_assoc (2 ^R INR 3) (/2 ^R INR 3) (/ / eps)).
+        rewrite (Rinv_r (2 ^R INR 3) (Rpower_nonzero 2 3 lt_0_2)).
+        rewrite (Rmult_1_l (/ /eps)).
+        rewrite (Rinv_involutive eps).
+        ** exact (Rle_refl eps).
+        ** exact (not_eq_sym (Rlt_not_eq 0 eps Hlt_0_eps)).
+    - apply (Rinv_neq_0_compat eps).
+      exact (not_eq_sym (Rlt_not_eq 0 eps Hlt_0_eps)).
+Qed.
+
 Close Scope R_scope.
