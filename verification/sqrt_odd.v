@@ -56,20 +56,11 @@ Axiom b_is_bit : forall n : nat, {b n = 0}+{b n = 1}.
 
   Note: see note for [a].
 *)
-Parameter approx : nat -> R.
-
-(**
-  Asserts that our initial approximation of the
-  square root of [2 a] is 0.
-*)
-Axiom approx_0 : approx 0 = 0.
-
-(**
-  Asserts that we generate the n-th approximation
-  by appending the n-th bit onto our previous
-  approximation.
-*)
-Axiom approx_Sn : forall n : nat, approx (S n) = approx n + (b n)/(2^n).
+Fixpoint approx (n : nat) : R :=
+  match n with
+  | 0 => 0
+  | S m => approx m + (b m/2^m)
+  end.
 
 (**
   Accepts a natural number, [n], and returns
@@ -121,9 +112,9 @@ Qed.
 Lemma approx_ub_strict_is_ub : forall n : nat, approx n <= approx_ub_strict n.
 Proof.
   induction n as [|m Hm]; unfold approx_ub_strict.
-  + rewrite approx_0.
+  + unfold approx.
     lra.
-  + rewrite approx_Sn.
+  + unfold approx. 
     fold (approx_ub_strict m).
     destruct (b_is_bit m) as [Hb|Hb]; rewrite Hb.
     - apply (Rplus_le_compat (approx m) (approx_ub_strict m) (0/2^m) (1/2^m)).
@@ -183,7 +174,6 @@ Proof.
   apply eq_sym.
   rewrite <- (Rplus_0_l (error 0)).
   rewrite <- (Rmult_0_l (0 * 1)).
-  rewrite <- approx_0.
   exact (spec 0).
 Qed.
 
@@ -212,7 +202,8 @@ Lemma error_Sn
 Proof.
   intro n.
   rewrite <- (error_n (S n)).
-  rewrite (approx_Sn n).
+  unfold approx.
+  fold (approx n).
   rewrite (sqr_expand (approx n) (b n/2^n)).
   unfold Rminus.
   rewrite (Ropp_plus_distr ((approx n)^2) (b n/2^n * (2 * approx n + b n/2^n))).
@@ -277,15 +268,11 @@ Qed.
 Lemma b_lower_bound
   :  forall n : nat, 0 <= b n.
 Proof.
-  exact
-    (fun n
-      => sumbool_ind
-           (fun _ => 0 <= b n)
-           (fun H : b n = 0
-             => Req_le_sym 0 (b n) H)
-           (fun H : b n = 1
-             => Rle_0_1 || 0 <= X @X by H)
-           (b_is_bit n)).
+  intro n.
+  destruct (b_is_bit n) as [H|H].
+  + exact (Req_le_sym 0 (b n) H).
+  + rewrite H.
+    exact (Rle_0_1).
 Qed.
 
 (**
@@ -295,8 +282,9 @@ Lemma approx_is_positive
   :  forall n : nat, 0 <= approx n.
 Proof.
   induction n as [|m H].
-  + exact (Req_le_sym 0 (approx 0) approx_0).
-  + rewrite (approx_Sn m).
+  + exact (Req_le_sym 0 (approx 0) eq_refl).
+  + unfold approx.
+    fold (approx m).
     apply (Rle_trans 0 (approx m + 0) (approx m + (b m)/(2^m))).
     - rewrite (Rplus_0_r (approx m)); assumption.
     - apply (Rplus_le_compat_l (approx m) 0 ((b m)/(2^m))).
@@ -310,7 +298,8 @@ Qed.
 Lemma approx_inc : forall n : nat, approx n <= approx (S n).
 Proof.
   intro n.
-  rewrite (approx_Sn n).
+  unfold approx.
+  fold (approx n).
   destruct (b_is_bit n) as [Hb|Hb]; rewrite Hb.
   + lra.
   + rewrite <- (Rplus_0_r (approx n)) at 1.
@@ -356,7 +345,7 @@ Theorem a_upper_bound_approx
   :  forall n : nat, 2*a < (approx n + 2/2^n)^2.
 Proof.
   induction n as [|m Hm].
-  + rewrite approx_0.
+  + unfold approx.
     rewrite (Rplus_0_l (2/2^0)).
     unfold Rdiv.
     simpl.
@@ -386,7 +375,8 @@ Proof.
                (b_0 m Hb))).
       * exact (a_upper_bound_2 m).
     - rewrite (eq_2_2n m).
-      rewrite approx_Sn.
+      unfold approx.
+      fold (approx m).
       rewrite Hb.
       rewrite (Rplus_assoc (approx m) (1/2^m) (1/2^m)).
       rewrite (eq_1_2n m).
